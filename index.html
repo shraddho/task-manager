@@ -736,7 +736,7 @@ function renderMobileCal(){
     body.innerHTML=hours.map(function(h){
         var evs=getCellEvents(mobileDay,h);
         return '<div class="hour-row"><div class="hour-label">'+String(h).padStart(2,'0')+':00</div><div class="hour-events">'+evs.map(function(e){return '<div class="cal-event '+e.type+'">'+e.text+'</div>';}).join('')+'</div></div>';
-    }).join('')||'<div class="empty-msg">No events</div>';
+    }).join('') || '<div class="empty-msg">No events</div>';
 }
 
 function changeWeek(dir){weekStart.setDate(weekStart.getDate()+dir*7);renderCalendar();}
