@@ -141,7 +141,7 @@
 </head>
 <body>
 <div class="header">
-    <h1>📚 מנהל משימות ומטלות</h1>
+    <h1>&#128218; מנהל משימות ומטלות</h1>
     <p>ניהול זמן חכם למטלות בית הספר</p>
 </div>
 <div class="sync-bar">
@@ -150,27 +150,27 @@
         <span id="sync-text">לחץ התחבר לסנכרון עם Google Drive</span>
     </div>
     <div class="sync-btns">
-        <button class="btn-sync" style="background:#34a853" id="btn-signin" onclick="signIn()">🔗 התחבר ל-Google</button>
-        <button class="btn-sync" style="background:#1a73e8;display:none" id="btn-save" onclick="saveNow()">☁️ שמור עכשיו</button>
-        <button class="btn-sync" style="background:#188038;display:none" id="btn-load" onclick="loadNow()">📥 טען מ-Drive</button>
-        <button class="btn-sync" style="background:#666;display:none" id="btn-signout" onclick="signOut()">🚪 התנתק</button>
+        <button class="btn-sync" style="background:#34a853" id="btn-signin" onclick="signIn()">התחבר ל-Google</button>
+        <button class="btn-sync" style="background:#1a73e8;display:none" id="btn-save" onclick="saveNow()">שמור עכשיו</button>
+        <button class="btn-sync" style="background:#188038;display:none" id="btn-load" onclick="loadNow()">טען מ-Drive</button>
+        <button class="btn-sync" style="background:#666;display:none" id="btn-signout" onclick="signOut()">התנתק</button>
     </div>
 </div>
 <div class="desktop-layout">
   <div class="desktop-content">
-    <div class="success-bar" id="d-success">✓ המטלה נוספה בהצלחה!</div>
+    <div class="success-bar" id="d-success">המטלה נוספה בהצלחה!</div>
     <div class="section">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-            <div class="section-title" style="margin:0;border:none;padding:0">📅 היומן השבועי שלי</div>
-            <button class="btn-export" onclick="exportAllCal()">📤 ייצא ל-Google Calendar</button>
+            <div class="section-title" style="margin:0;border:none;padding:0">היומן השבועי שלי</div>
+            <button class="btn-export" onclick="exportAllCal()">ייצא ל-Google Calendar</button>
         </div>
         <div class="calendar-wrapper">
             <div class="cal-nav">
-                <button class="cal-nav-btn" onclick="changeWeek(-1)">→</button>
+                <button class="cal-nav-btn" onclick="changeWeek(-1)">&#8594;</button>
                 <div class="cal-title" id="d-week-label"></div>
-                <button class="cal-nav-btn" onclick="changeWeek(1)">←</button>
+                <button class="cal-nav-btn" onclick="changeWeek(1)">&#8592;</button>
             </div>
-            <div class="desktop-cal" style="overflow-x:auto">
+            <div style="overflow-x:auto">
                 <table class="cal-table" id="d-cal"></table>
             </div>
             <div class="legend">
@@ -186,7 +186,7 @@
         <div class="stat-card"><div class="stat-number" id="d-hours">0</div><div class="stat-label">שעות</div></div>
     </div>
     <div class="section">
-        <div class="section-title">➕ הוסף משימה חדשה</div>
+        <div class="section-title">הוסף משימה חדשה</div>
         <div class="form-row">
             <div>
                 <div class="form-group"><label class="form-label">שם המטלה</label><input class="form-input" id="d-name" placeholder="עבודה במתמטיקה"></div>
@@ -215,12 +215,12 @@
         </div>
         <div class="form-group" id="d-help-div" style="display:none"><label class="form-label">על מה את צריכה עזרה?</label><textarea class="form-textarea" id="d-help-msg" rows="2"></textarea></div>
         <div class="btn-row">
-            <button class="btn btn-primary" onclick="addTask('d')">➕ הוסף משימה</button>
-            <button class="btn btn-secondary" onclick="clearForm('d')">🔄 נקה</button>
+            <button class="btn btn-primary" onclick="addTask('d')">הוסף משימה</button>
+            <button class="btn btn-secondary" onclick="clearForm('d')">נקה</button>
         </div>
     </div>
     <div class="section">
-        <div class="section-title">🕐 שעות פנויות</div>
+        <div class="section-title">שעות פנויות</div>
         <div class="form-row">
             <div class="form-group"><label class="form-label">יום</label>
                 <select class="form-select" id="d-free-day">
@@ -239,22 +239,22 @@
             </div>
         </div>
         <div class="form-group" id="d-onetime-div" style="display:none"><label class="form-label">תאריך ספציפי</label><input class="form-input" type="date" id="d-onetime-date"></div>
-        <button class="btn btn-primary" onclick="addFreeTime('d')">➕ הוסף שעה פנויה</button>
+        <button class="btn btn-primary" onclick="addFreeTime('d')">הוסף שעה פנויה</button>
         <div id="d-free-list"></div>
     </div>
     <div class="section">
-        <div class="section-title">📋 סדר עדיפויות</div>
+        <div class="section-title">סדר עדיפויות</div>
         <div id="d-schedule"><p class="empty-msg">הוסף משימות לראות עדיפויות</p></div>
     </div>
     <div class="section">
-        <div class="section-title">📝 המטלות שלי</div>
+        <div class="section-title">המטלות שלי</div>
         <div id="d-tasks"><div class="empty-msg">אין משימות. הוסף משימה ראשונה!</div></div>
     </div>
   </div>
 </div>
 <div class="mobile-layout">
     <div class="mobile-page active" id="m-page-cal">
-        <div class="success-bar" id="m-success">✓ המטלה נוספה!</div>
+        <div class="success-bar" id="m-success">המטלה נוספה!</div>
         <div class="stats">
             <div class="stat-card"><div class="stat-number" id="m-total">0</div><div class="stat-label">משימות</div></div>
             <div class="stat-card"><div class="stat-number" id="m-pending">0</div><div class="stat-label">ממתינות</div></div>
@@ -262,15 +262,15 @@
         </div>
         <div class="calendar-wrapper">
             <div class="cal-nav">
-                <button class="cal-nav-btn" onclick="changeWeek(-1)">→</button>
+                <button class="cal-nav-btn" onclick="changeWeek(-1)">&#8594;</button>
                 <div class="cal-title" id="m-week-label"></div>
-                <button class="cal-nav-btn" onclick="changeWeek(1)">←</button>
+                <button class="cal-nav-btn" onclick="changeWeek(1)">&#8592;</button>
             </div>
             <div class="mobile-cal">
                 <div class="mobile-day-nav">
-                    <button class="mobile-day-nav-btn" onclick="changeMobileDay(-1)">→</button>
+                    <button class="mobile-day-nav-btn" onclick="changeMobileDay(-1)">&#8594;</button>
                     <div class="mobile-day-label" id="m-day-label"></div>
-                    <button class="mobile-day-nav-btn" onclick="changeMobileDay(1)">←</button>
+                    <button class="mobile-day-nav-btn" onclick="changeMobileDay(1)">&#8592;</button>
                 </div>
                 <div class="mobile-day-body" id="m-day-body"></div>
             </div>
@@ -281,14 +281,14 @@
             </div>
         </div>
         <div class="section">
-            <div class="section-title">📋 סדר עדיפויות</div>
+            <div class="section-title">סדר עדיפויות</div>
             <div id="m-schedule"><p class="empty-msg">הוסף משימות לראות עדיפויות</p></div>
         </div>
     </div>
     <div class="mobile-page" id="m-page-add">
-        <div class="section-title">➕ הוסף משימה חדשה</div>
-        <div class="form-group"><label class="form-label">שם המטלה *</label><input class="form-input" id="m-name" placeholder="עבודה במתמטיקה"></div>
-        <div class="form-group"><label class="form-label">מקצוע *</label>
+        <div class="section-title">הוסף משימה חדשה</div>
+        <div class="form-group"><label class="form-label">שם המטלה</label><input class="form-input" id="m-name" placeholder="עבודה במתמטיקה"></div>
+        <div class="form-group"><label class="form-label">מקצוע</label>
             <select class="form-select" id="m-subject">
                 <option value="">בחר מקצוע</option>
                 <option>מתמטיקה</option><option>אנגלית</option><option>עברית</option>
@@ -297,8 +297,8 @@
             </select>
         </div>
         <div class="form-row" style="grid-template-columns:1fr 1fr">
-            <div class="form-group"><label class="form-label">זמן (דקות) *</label><input class="form-input" type="number" id="m-time" placeholder="60"></div>
-            <div class="form-group"><label class="form-label">תאריך הגשה *</label><input class="form-input" type="date" id="m-due-date"></div>
+            <div class="form-group"><label class="form-label">זמן (דקות)</label><input class="form-input" type="number" id="m-time" placeholder="60"></div>
+            <div class="form-group"><label class="form-label">תאריך הגשה</label><input class="form-input" type="date" id="m-due-date"></div>
         </div>
         <div class="form-group"><label class="form-label">שעת הגשה</label><input class="form-input" type="time" id="m-due-time"></div>
         <div class="form-group"><label class="form-label">תיאור / הערות</label><textarea class="form-textarea" id="m-desc" rows="2" placeholder="מידע נוסף..."></textarea></div>
@@ -311,16 +311,16 @@
         </div>
         <div class="form-group" id="m-help-div" style="display:none"><label class="form-label">על מה?</label><textarea class="form-textarea" id="m-help-msg" rows="2"></textarea></div>
         <div class="btn-row">
-            <button class="btn btn-primary" style="flex:1" onclick="addTask('m')">➕ הוסף משימה</button>
-            <button class="btn btn-secondary" onclick="clearForm('m')">🔄</button>
+            <button class="btn btn-primary" style="flex:1" onclick="addTask('m')">הוסף משימה</button>
+            <button class="btn btn-secondary" onclick="clearForm('m')">נקה</button>
         </div>
     </div>
     <div class="mobile-page" id="m-page-tasks">
-        <div class="section-title">📝 המטלות שלי</div>
-        <div id="m-tasks"><div class="empty-msg">אין משימות. לחץ ➕ להוספה!</div></div>
+        <div class="section-title">המטלות שלי</div>
+        <div id="m-tasks"><div class="empty-msg">אין משימות. לחץ להוספה!</div></div>
     </div>
     <div class="mobile-page" id="m-page-free">
-        <div class="section-title">🕐 שעות פנויות</div>
+        <div class="section-title">שעות פנויות</div>
         <div class="form-group"><label class="form-label">יום</label>
             <select class="form-select" id="m-free-day">
                 <option value="">בחר יום</option>
@@ -339,32 +339,32 @@
             </div>
         </div>
         <div class="form-group" id="m-onetime-div" style="display:none"><label class="form-label">תאריך ספציפי</label><input class="form-input" type="date" id="m-onetime-date"></div>
-        <button class="btn btn-primary" style="width:100%" onclick="addFreeTime('m')">➕ הוסף שעה פנויה</button>
+        <button class="btn btn-primary" style="width:100%" onclick="addFreeTime('m')">הוסף שעה פנויה</button>
         <div id="m-free-list"></div>
     </div>
 </div>
 <div class="bottom-nav">
     <div class="bottom-nav-inner">
-        <button class="nav-btn active" id="nb-cal" onclick="goPage('cal')"><span class="icon">📅</span>יומן</button>
-        <button class="nav-btn" id="nb-add" onclick="goPage('add')"><span class="icon">➕</span>הוסף</button>
-        <button class="nav-btn" id="nb-tasks" onclick="goPage('tasks')"><span class="icon">📝</span>משימות</button>
-        <button class="nav-btn" id="nb-free" onclick="goPage('free')"><span class="icon">🕐</span>פנוי</button>
+        <button class="nav-btn active" id="nb-cal" onclick="goPage('cal')"><span class="icon">&#128197;</span>יומן</button>
+        <button class="nav-btn" id="nb-add" onclick="goPage('add')"><span class="icon">&#10133;</span>הוסף</button>
+        <button class="nav-btn" id="nb-tasks" onclick="goPage('tasks')"><span class="icon">&#128221;</span>משימות</button>
+        <button class="nav-btn" id="nb-free" onclick="goPage('free')"><span class="icon">&#128336;</span>פנוי</button>
     </div>
 </div>
 <div class="modal" id="plan-modal">
     <div class="modal-box">
-        <div class="modal-head"><h3>📅 תכנן מתי לבצע</h3><span class="modal-close" onclick="closePlan()">&times;</span></div>
+        <div class="modal-head"><h3>תכנן מתי לבצע</h3><span class="modal-close" onclick="closePlan()">&times;</span></div>
         <div id="plan-task-info"></div>
         <div id="plan-slots"></div>
         <div class="btn-row" style="margin-top:14px">
-            <button class="btn btn-primary" onclick="confirmPlan()">✓ אשר</button>
+            <button class="btn btn-primary" onclick="confirmPlan()">אשר</button>
             <button class="btn btn-secondary" onclick="closePlan()">ביטול</button>
         </div>
     </div>
 </div>
 <div class="modal" id="partial-modal">
     <div class="modal-box">
-        <div class="modal-head"><h3>⏱️ חלוקת מטלה לחלקים</h3><span class="modal-close" onclick="closePartial()">&times;</span></div>
+        <div class="modal-head"><h3>חלוקת מטלה לחלקים</h3><span class="modal-close" onclick="closePartial()">&times;</span></div>
         <div id="partial-info"></div>
         <div class="partial-time-input">
             <label>כמה דקות לבצע עכשיו?</label>
@@ -372,7 +372,7 @@
             <div id="partial-hint" style="color:#888;font-size:12px;margin-top:6px"></div>
         </div>
         <div class="btn-row" style="margin-top:14px">
-            <button class="btn btn-primary" onclick="confirmPartial()">✓ אשר</button>
+            <button class="btn btn-primary" onclick="confirmPartial()">אשר</button>
             <button class="btn btn-secondary" onclick="closePartial()">ביטול</button>
         </div>
     </div>
@@ -389,7 +389,7 @@ weekStart.setHours(0,0,0,0);
 var mobileDay = new Date().getDay();
 var selSlot = null, planTaskId = null, partialTaskId = null, partialSlot = null;
 var tokenClient = null, accessToken = null, driveFileId = null, autoSaveTimer = null;
-var DAYS = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+var DAYS = ['\u05e8\u05d0\u05e9\u05d5\u05df','\u05e9\u05e0\u05d9','\u05e9\u05dc\u05d9\u05e9\u05d9','\u05e8\u05d1\u05d9\u05e2\u05d9','\u05d7\u05de\u05d9\u05e9\u05d9','\u05e9\u05d9\u05e9\u05d9','\u05e9\u05d1\u05ea'];
 
 function save() {
     try {
@@ -416,18 +416,18 @@ function setSyncUI(state, text) {
 }
 
 function signIn() {
-    if (!window.google) { alert('טוען Google... נסה שוב בעוד שנייה.'); return; }
+    if (!window.google) { alert('\u05d8\u05d5\u05e2\u05df Google... \u05e0\u05e1\u05d4 \u05e9\u05d5\u05d1 \u05d1\u05e2\u05d5\u05d3 \u05e9\u05e0\u05d9\u05d9\u05d4.'); return; }
     tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: SCOPES,
         callback: function(resp) {
-            if (resp.error) { setSyncUI('err', 'שגיאה: ' + resp.error); return; }
+            if (resp.error) { setSyncUI('err', resp.error); return; }
             accessToken = resp.access_token;
             document.getElementById('btn-signin').style.display = 'none';
             document.getElementById('btn-save').style.display = 'inline-flex';
             document.getElementById('btn-load').style.display = 'inline-flex';
             document.getElementById('btn-signout').style.display = 'inline-flex';
-            setSyncUI('ok', 'מחובר ל-Google Drive ✓');
+            setSyncUI('ok', '\u05de\u05d7\u05d5\u05d1\u05e8 \u05dc-Google Drive');
             loadNow();
         }
     });
@@ -441,59 +441,67 @@ function signOut() {
     document.getElementById('btn-save').style.display = 'none';
     document.getElementById('btn-load').style.display = 'none';
     document.getElementById('btn-signout').style.display = 'none';
-    setSyncUI('', 'לחץ התחבר לסנכרון עם Google Drive');
+    setSyncUI('', '');
 }
 
 function scheduleAutoSave() {
     if (!accessToken) return;
     clearTimeout(autoSaveTimer);
     autoSaveTimer = setTimeout(saveNow, 3000);
-    setSyncUI('work', 'שומר...');
 }
 
-async function saveNow() {
-    if (!accessToken) { alert('אנא התחבר תחילה ל-Google Drive'); return; }
-    try {
-        setSyncUI('work', 'שומר...');
-        var data = JSON.stringify({tasks: tasks, freeTimes: freeTimes, savedAt: new Date().toISOString()});
-        if (!driveFileId) {
-            var searchRes = await fetch("https://www.googleapis.com/drive/v3/files?q=name%3D'" + FILE_NAME + "'+and+trashed%3Dfalse&spaces=drive&fields=files(id)", {headers:{Authorization:'Bearer '+accessToken}});
-            var searchJson = await searchRes.json();
-            if (searchJson.files && searchJson.files.length > 0) driveFileId = searchJson.files[0].id;
-        }
-        if (driveFileId) {
-            await fetch('https://www.googleapis.com/upload/drive/v3/files/'+driveFileId+'?uploadType=media', {
-                method:'PATCH', headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'}, body:data
-            });
+function saveNow() {
+    if (!accessToken) return;
+    setSyncUI('work', '\u05e9\u05d5\u05de\u05e8...');
+    var data = JSON.stringify({tasks: tasks, freeTimes: freeTimes});
+    var searchUrl = "https://www.googleapis.com/drive/v3/files?q=name%3D'" + FILE_NAME + "'+and+trashed%3Dfalse&spaces=drive&fields=files(id)";
+    fetch(searchUrl, {headers:{Authorization:'Bearer '+accessToken}})
+    .then(function(r){return r.json();})
+    .then(function(res){
+        if (res.files && res.files.length > 0) {
+            driveFileId = res.files[0].id;
+            return fetch('https://www.googleapis.com/upload/drive/v3/files/'+driveFileId+'?uploadType=media',
+                {method:'PATCH', headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'}, body:data});
         } else {
             var form = new FormData();
-            form.append('metadata', new Blob([JSON.stringify({name:FILE_NAME,mimeType:'application/json'})], {type:'application/json'}));
-            form.append('file', new Blob([data], {type:'application/json'}));
-            var cr = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {method:'POST', headers:{Authorization:'Bearer '+accessToken}, body:form});
-            var cj = await cr.json();
-            driveFileId = cj.id;
+            form.append('metadata', new Blob([JSON.stringify({name:FILE_NAME,mimeType:'application/json'})],{type:'application/json'}));
+            form.append('file', new Blob([data],{type:'application/json'}));
+            return fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',
+                {method:'POST', headers:{Authorization:'Bearer '+accessToken}, body:form})
+            .then(function(r){return r.json();})
+            .then(function(j){driveFileId=j.id;});
         }
-        setSyncUI('ok', 'נשמר ✓ ' + new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}));
-    } catch(e) { setSyncUI('err', 'שגיאה בשמירה'); }
+    })
+    .then(function(){
+        var t = new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+        setSyncUI('ok', '\u05e0\u05e9\u05de\u05e8 ' + t);
+    })
+    .catch(function(){setSyncUI('err','\u05e9\u05d2\u05d9\u05d0\u05d4');});
 }
 
-async function loadNow() {
-    if (!accessToken) { alert('אנא התחבר תחילה ל-Google Drive'); return; }
-    try {
-        setSyncUI('work', 'טוען...');
-        var searchRes = await fetch("https://www.googleapis.com/drive/v3/files?q=name%3D'" + FILE_NAME + "'+and+trashed%3Dfalse&spaces=drive&fields=files(id)", {headers:{Authorization:'Bearer '+accessToken}});
-        var searchJson = await searchRes.json();
-        if (!searchJson.files || !searchJson.files.length) { setSyncUI('ok', 'מחובר - אין נתונים שמורים עדיין'); return; }
-        driveFileId = searchJson.files[0].id;
-        var fileRes = await fetch('https://www.googleapis.com/drive/v3/files/'+driveFileId+'?alt=media', {headers:{Authorization:'Bearer '+accessToken}});
-        var fileData = await fileRes.json();
-        if (fileData.tasks) tasks = fileData.tasks;
-        if (fileData.freeTimes) freeTimes = fileData.freeTimes;
-        localStorage.setItem('tasks', JSON.stringify(tasks));
-        localStorage.setItem('fts', JSON.stringify(freeTimes));
-        renderAll();
-        setSyncUI('ok', 'נטען מ-Google Drive ✓ ' + new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}));
-    } catch(e) { setSyncUI('err', 'שגיאה בטעינה'); }
+function loadNow() {
+    if (!accessToken) return;
+    setSyncUI('work', '\u05d8\u05d5\u05e2\u05df...');
+    var searchUrl = "https://www.googleapis.com/drive/v3/files?q=name%3D'" + FILE_NAME + "'+and+trashed%3Dfalse&spaces=drive&fields=files(id)";
+    fetch(searchUrl, {headers:{Authorization:'Bearer '+accessToken}})
+    .then(function(r){return r.json();})
+    .then(function(res){
+        if (!res.files || !res.files.length) { setSyncUI('ok','\u05de\u05d7\u05d5\u05d1\u05e8'); return; }
+        driveFileId = res.files[0].id;
+        return fetch('https://www.googleapis.com/drive/v3/files/'+driveFileId+'?alt=media',
+            {headers:{Authorization:'Bearer '+accessToken}})
+        .then(function(r){return r.json();})
+        .then(function(d){
+            if (d.tasks) tasks = d.tasks;
+            if (d.freeTimes) freeTimes = d.freeTimes;
+            localStorage.setItem('tasks',JSON.stringify(tasks));
+            localStorage.setItem('fts',JSON.stringify(freeTimes));
+            renderAll();
+            var t = new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+            setSyncUI('ok','\u05e0\u05d8\u05e2\u05df ' + t);
+        });
+    })
+    .catch(function(){setSyncUI('err','\u05e9\u05d2\u05d9\u05d0\u05d4');});
 }
 
 function goPage(p) {
@@ -516,7 +524,7 @@ function addTask(ctx) {
         var helpDad = document.getElementById(ctx+'-dad').checked;
         var helpMsgEl = document.getElementById(ctx+'-help-msg');
         var helpMsg = helpMsgEl ? helpMsgEl.value.trim() : '';
-        if (!name||!subject||!est||!dueDate) { alert('אנא מלא: שם, מקצוע, זמן ותאריך הגשה'); return; }
+        if (!name||!subject||!est||!dueDate) { alert('Please fill all fields'); return; }
         var task = {id:Date.now(), name:name, subject:subject, estimatedTime:est, remainingTime:est,
             dueDate:dueDate, dueTime:dueTime, description:desc,
             helpNeeded:helpMom||helpDad, helpMom:helpMom, helpDad:helpDad, helpMessage:helpMsg,
@@ -525,7 +533,7 @@ function addTask(ctx) {
         save(); showSuccess(ctx); renderAll(); clearForm(ctx);
         if (ctx==='m') goPage('tasks');
         if (helpMom||helpDad) showWA(task, ctx);
-    } catch(e) { alert('שגיאה: '+e.message); }
+    } catch(e) { alert(e.message); }
 }
 
 function showSuccess(ctx) {
@@ -540,22 +548,22 @@ function clearForm(ctx) {
         var el = document.getElementById(ctx+'-'+f);
         if (el) el.value = '';
     });
-    var mom = document.getElementById(ctx+'-mom'); if (mom) mom.checked = false;
-    var dad = document.getElementById(ctx+'-dad'); if (dad) dad.checked = false;
-    var alone = document.getElementById(ctx+'-alone'); if (alone) alone.checked = true;
-    var hm = document.getElementById(ctx+'-help-msg'); if (hm) hm.value = '';
-    var hd = document.getElementById(ctx+'-help-div'); if (hd) hd.style.display = 'none';
+    var mom=document.getElementById(ctx+'-mom'); if(mom)mom.checked=false;
+    var dad=document.getElementById(ctx+'-dad'); if(dad)dad.checked=false;
+    var alone=document.getElementById(ctx+'-alone'); if(alone)alone.checked=true;
+    var hm=document.getElementById(ctx+'-help-msg'); if(hm)hm.value='';
+    var hd=document.getElementById(ctx+'-help-div'); if(hd)hd.style.display='none';
 }
 
 function deleteTask(id) {
-    if (confirm('למחוק?')) {
+    if (confirm('?')) {
         tasks = tasks.filter(function(t){return t.id!==id;});
         save(); renderAll();
     }
 }
 
 function toggleDone(id) {
-    var t = tasks.find(function(t){return t.id===id;});
+    var t = tasks.find(function(x){return x.id===id;});
     if (!t) return;
     t.completed = !t.completed;
     if (t.completed) t.remainingTime = 0;
@@ -564,40 +572,47 @@ function toggleDone(id) {
 }
 
 function showWA(task, ctx) {
-    var parent = task.helpMom ? 'אמא' : 'אבא';
-    var msg = 'שלום '+parent+',\n\nאני צריכה עזרה! 🙏\n\n📌 '+task.name+'\n📘 '+task.subject+'\n⏰ '+task.estimatedTime+' דקות\n📅 הגשה: '+task.dueDate;
-    if (task.dueTime) msg += ' בשעה '+task.dueTime;
-    if (task.description) msg += '\n\n📝 '+task.description;
-    if (task.helpMessage) msg += '\n\n💬 '+task.helpMessage;
-    msg += '\n\nתודה! ❤️';
-    var enc = btoa(unescape(encodeURIComponent(msg)));
+    var parent = task.helpMom ? DAYS[0] : DAYS[0];
+    var lines = [];
+    lines.push(task.name);
+    lines.push(task.subject);
+    lines.push(task.estimatedTime + ' min');
+    lines.push(task.dueDate);
+    if (task.dueTime) lines.push(task.dueTime);
+    if (task.description) lines.push(task.description);
+    if (task.helpMessage) lines.push(task.helpMessage);
+    var msg = lines.join('\n');
     var div = document.createElement('div');
     div.className = 'wa-preview';
-    div.innerHTML = '<strong>📱 הודעה ל-WhatsApp:</strong><div class="wa-message-box">'+msg+'</div><button class="btn-whatsapp" id="wa-btn-'+enc.slice(0,8)+'">📋 העתק הודעה</button>';
+    var box = document.createElement('div');
+    box.className = 'wa-message-box';
+    box.textContent = msg;
+    var btn = document.createElement('button');
+    btn.className = 'btn-whatsapp';
+    btn.textContent = 'Copy';
+    btn.onclick = function(){copyWA(msg,btn);};
+    div.appendChild(box);
+    div.appendChild(btn);
     var list = document.getElementById(ctx==='d'?'d-tasks':'m-tasks');
     if (list) list.insertBefore(div, list.firstChild);
-    document.getElementById('wa-btn-'+enc.slice(0,8)).onclick = function(){copyWA(msg, this);};
 }
 
 function copyWA(text, btn) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(function(){
-            btn.textContent = '✓ הועתק!';
-            setTimeout(function(){btn.textContent='📋 העתק הודעה';}, 2500);
+            btn.textContent = 'Copied!';
+            setTimeout(function(){btn.textContent='Copy';},2500);
         }).catch(function(){fallbackCopy(text,btn);});
     } else { fallbackCopy(text,btn); }
 }
 
 function fallbackCopy(text, btn) {
     var ta = document.createElement('textarea');
-    ta.value = text; ta.setAttribute('readonly','');
-    ta.style.cssText = 'position:fixed;top:0;left:0;width:2px;height:2px;opacity:0;';
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;opacity:0;';
     document.body.appendChild(ta); ta.focus(); ta.select();
-    try {
-        document.execCommand('copy');
-        btn.textContent = '✓ הועתק!';
-        setTimeout(function(){btn.textContent='📋 העתק הודעה';}, 2500);
-    } catch(e) { alert('לא ניתן להעתיק.\n\n'+text); }
+    try { document.execCommand('copy'); btn.textContent='Copied!'; setTimeout(function(){btn.textContent='Copy';},2500); }
+    catch(e) { alert(text); }
     document.body.removeChild(ta);
 }
 
@@ -610,15 +625,15 @@ function addFreeTime(ctx) {
         var type = typeEl ? typeEl.value : 'recurring';
         var odateEl = document.getElementById(ctx+'-onetime-date');
         var odate = odateEl ? odateEl.value : '';
-        if (!day||!time||!dur) { alert('אנא מלא יום, שעה ומשך'); return; }
-        if (type==='oneTime'&&!odate) { alert('אנא בחר תאריך'); return; }
-        freeTimes.push({id:Date.now(), day:day, time:time, duration:dur, type:type, oneTimeDate:type==='oneTime'?odate:null});
+        if (!day||!time||!dur) { alert('Fill all fields'); return; }
+        if (type==='oneTime'&&!odate) { alert('Pick date'); return; }
+        freeTimes.push({id:Date.now(),day:day,time:time,duration:dur,type:type,oneTimeDate:type==='oneTime'?odate:null});
         save(); renderFreeLists(); renderCalendar();
-        document.getElementById(ctx+'-free-day').value = '';
-        document.getElementById(ctx+'-free-time').value = '';
-        document.getElementById(ctx+'-free-dur').value = '';
-        if (odateEl) odateEl.value = '';
-    } catch(e) { alert('שגיאה: '+e.message); }
+        document.getElementById(ctx+'-free-day').value='';
+        document.getElementById(ctx+'-free-time').value='';
+        document.getElementById(ctx+'-free-dur').value='';
+        if(odateEl)odateEl.value='';
+    } catch(e) { alert(e.message); }
 }
 
 function deleteFT(id) {
@@ -630,347 +645,320 @@ function renderFreeLists() {
     ['d','m'].forEach(function(ctx){
         var el = document.getElementById(ctx+'-free-list'); if (!el) return;
         if (!freeTimes.length) { el.innerHTML=''; return; }
-        var html = '<div style="margin-top:12px;font-weight:600;margin-bottom:6px;">🕐 השעות הפנויות שלי:</div>';
+        var html = '<div style="margin-top:12px;font-weight:600;margin-bottom:6px;">Free times:</div>';
         freeTimes.forEach(function(ft){
             html += '<div class="slot-item '+(ft.type==='recurring'?'recurring':'')+'"><div class="slot-info">';
-            if (ft.type==='recurring') html += '<span class="badge-recurring">חוזר</span>';
-            html += '<strong>יום '+DAYS[parseInt(ft.day)]+'</strong>'+(ft.oneTimeDate?' ('+ft.oneTimeDate+')':'');
-            html += '<br>'+ft.time+' - '+addMins(ft.time,ft.duration)+' ('+ft.duration+' דק\')</div>';
-            html += '<button class="btn-danger" onclick="deleteFT('+ft.id+')">🗑️</button></div>';
+            html += '<strong>'+DAYS[parseInt(ft.day)]+'</strong> '+ft.time+'-'+addMins(ft.time,ft.duration)+' ('+ft.duration+' min)</div>';
+            html += '<button class="btn-danger" onclick="deleteFT('+ft.id+')">X</button></div>';
         });
         el.innerHTML = html;
     });
 }
 
-function addMins(t, m) {
-    var parts = t.split(':');
-    var tot = parseInt(parts[0])*60 + parseInt(parts[1]) + m;
-    return String(Math.floor(tot/60)%24).padStart(2,'0') + ':' + String(tot%60).padStart(2,'0');
+function addMins(t,m){
+    var p=t.split(':');
+    var tot=parseInt(p[0])*60+parseInt(p[1])+m;
+    return String(Math.floor(tot/60)%24).padStart(2,'0')+':'+String(tot%60).padStart(2,'0');
 }
 
-function getHours() {
-    var hrs = new Set();
-    freeTimes.forEach(function(ft){ hrs.add(parseInt(ft.time.split(':')[0])); });
+function getHours(){
+    var hrs=new Set();
+    freeTimes.forEach(function(ft){hrs.add(parseInt(ft.time.split(':')[0]));});
     tasks.forEach(function(t){
-        (t.sessions||[]).forEach(function(s){ if(s.dateTime) hrs.add(new Date(s.dateTime).getHours()); });
-        if (t.plannedDateTime && !(t.sessions&&t.sessions.length)) hrs.add(new Date(t.plannedDateTime).getHours());
-        if (t.dueDate&&t.dueTime) hrs.add(new Date(t.dueDate+'T'+t.dueTime).getHours());
+        (t.sessions||[]).forEach(function(s){if(s.dateTime)hrs.add(new Date(s.dateTime).getHours());});
+        if(t.plannedDateTime&&!(t.sessions&&t.sessions.length))hrs.add(new Date(t.plannedDateTime).getHours());
+        if(t.dueDate&&t.dueTime)hrs.add(new Date(t.dueDate+'T'+t.dueTime).getHours());
     });
-    if (!hrs.size) for(var i=7;i<=21;i++) hrs.add(i);
-    var arr = Array.from(hrs);
-    arr.forEach(function(h){ if(h>0)hrs.add(h-1); if(h<23)hrs.add(h+1); });
+    if(!hrs.size)for(var i=7;i<=21;i++)hrs.add(i);
+    var arr=Array.from(hrs);
+    arr.forEach(function(h){if(h>0)hrs.add(h-1);if(h<23)hrs.add(h+1);});
     return Array.from(hrs).sort(function(a,b){return a-b;});
 }
 
-function getCellEvents(dayIdx, hour) {
-    var cd = new Date(weekStart);
-    cd.setDate(cd.getDate()+dayIdx); cd.setHours(hour,0,0,0);
-    var evs = [];
-    var cdStr = cd.toISOString().split('T')[0];
+function getCellEvents(dayIdx,hour){
+    var cd=new Date(weekStart);
+    cd.setDate(cd.getDate()+dayIdx);cd.setHours(hour,0,0,0);
+    var evs=[];
+    var cdStr=cd.toISOString().split('T')[0];
     freeTimes.forEach(function(ft){
-        if (parseInt(ft.time.split(':')[0])!==hour) return;
-        var match = ft.type==='recurring' && parseInt(ft.day)===dayIdx;
-        if (!match && ft.type==='oneTime') match = ft.oneTimeDate===cdStr;
-        if (match) evs.push({type:'free-time', text:'🕐 '+ft.duration+'\' פנוי'});
+        if(parseInt(ft.time.split(':')[0])!==hour)return;
+        var match=ft.type==='recurring'&&parseInt(ft.day)===dayIdx;
+        if(!match&&ft.type==='oneTime')match=ft.oneTimeDate===cdStr;
+        if(match)evs.push({type:'free-time',text:'Free '+ft.duration+'min'});
     });
     tasks.forEach(function(t){
-        var ss = (t.sessions&&t.sessions.length) ? t.sessions : (t.plannedDateTime?[{dateTime:t.plannedDateTime,duration:t.estimatedTime}]:[]);
+        var ss=(t.sessions&&t.sessions.length)?t.sessions:(t.plannedDateTime?[{dateTime:t.plannedDateTime,duration:t.estimatedTime}]:[]);
         ss.forEach(function(s){
-            if (!s.dateTime) return;
-            var p = new Date(s.dateTime);
-            if (p.getDate()===cd.getDate()&&p.getMonth()===cd.getMonth()&&p.getFullYear()===cd.getFullYear()&&p.getHours()===hour)
-                evs.push({type:'planned', text:'📝 '+t.name+(t.sessions&&t.sessions.length>1?' ('+s.duration+'\')'  :'')});
+            if(!s.dateTime)return;
+            var p=new Date(s.dateTime);
+            if(p.getDate()===cd.getDate()&&p.getMonth()===cd.getMonth()&&p.getFullYear()===cd.getFullYear()&&p.getHours()===hour)
+                evs.push({type:'planned',text:t.name});
         });
-        if (t.dueDate&&!t.completed) {
-            var d = new Date(t.dueDate+'T'+(t.dueTime||'00:00'));
-            if (d.getDate()===cd.getDate()&&d.getMonth()===cd.getMonth()&&d.getFullYear()===cd.getFullYear()&&d.getHours()===hour)
-                evs.push({type:'deadline', text:'⚠️ הגשה: '+t.name});
+        if(t.dueDate&&!t.completed){
+            var d=new Date(t.dueDate+'T'+(t.dueTime||'00:00'));
+            if(d.getDate()===cd.getDate()&&d.getMonth()===cd.getMonth()&&d.getFullYear()===cd.getFullYear()&&d.getHours()===hour)
+                evs.push({type:'deadline',text:t.name});
         }
     });
     return evs;
 }
 
-function renderCalendar() {
-    var we = new Date(weekStart); we.setDate(we.getDate()+6);
-    var lbl = weekStart.toLocaleDateString('he-IL',{day:'numeric',month:'long'})+' — '+we.toLocaleDateString('he-IL',{day:'numeric',month:'long',year:'numeric'});
-    ['d-week-label','m-week-label'].forEach(function(id){ var el=document.getElementById(id); if(el)el.textContent=lbl; });
-    renderDesktopCal(); renderMobileCal();
+function renderCalendar(){
+    var we=new Date(weekStart);we.setDate(we.getDate()+6);
+    var lbl=weekStart.toLocaleDateString('he-IL',{day:'numeric',month:'long'})+' - '+we.toLocaleDateString('he-IL',{day:'numeric',month:'long',year:'numeric'});
+    ['d-week-label','m-week-label'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=lbl;});
+    renderDesktopCal();renderMobileCal();
 }
 
-function renderDesktopCal() {
-    var table = document.getElementById('d-cal'); if (!table) return;
-    var hours = getHours();
-    var html = '<thead><tr><th class="time-col">שעה</th>';
-    for (var i=0;i<7;i++) { var d=new Date(weekStart); d.setDate(d.getDate()+i); html+='<th>'+DAYS[i]+'<br><small>'+d.getDate()+'/'+(d.getMonth()+1)+'</small></th>'; }
-    html += '</tr></thead><tbody>';
+function renderDesktopCal(){
+    var table=document.getElementById('d-cal');if(!table)return;
+    var hours=getHours();
+    var html='<thead><tr><th class="time-col">Time</th>';
+    for(var i=0;i<7;i++){var d=new Date(weekStart);d.setDate(d.getDate()+i);html+='<th>'+DAYS[i]+'<br><small>'+d.getDate()+'/'+(d.getMonth()+1)+'</small></th>';}
+    html+='</tr></thead><tbody>';
     hours.forEach(function(h){
-        html += '<tr><td class="time-cell">'+String(h).padStart(2,'0')+':00</td>';
-        for (var d=0;d<7;d++) {
-            var evs = getCellEvents(d,h);
-            html += '<td class="day-cell'+(evs.length?' has-event':'')+'">'+evs.map(function(e){return '<div class="cal-event '+e.type+'">'+e.text+'</div>';}).join('')+'</td>';
+        html+='<tr><td class="time-cell">'+String(h).padStart(2,'0')+':00</td>';
+        for(var d=0;d<7;d++){
+            var evs=getCellEvents(d,h);
+            html+='<td class="day-cell'+(evs.length?' has-event':'')+'">'+evs.map(function(e){return '<div class="cal-event '+e.type+'">'+e.text+'</div>';}).join('')+'</td>';
         }
-        html += '</tr>';
+        html+='</tr>';
     });
-    table.innerHTML = html+'</tbody>';
+    table.innerHTML=html+'</tbody>';
 }
 
-function renderMobileCal() {
-    var d = new Date(weekStart); d.setDate(d.getDate()+mobileDay);
-    var lbl = document.getElementById('m-day-label'); if (lbl) lbl.textContent = DAYS[mobileDay]+', '+d.getDate()+'/'+(d.getMonth()+1);
-    var body = document.getElementById('m-day-body'); if (!body) return;
-    var hours = getHours();
-    body.innerHTML = hours.map(function(h){
-        var evs = getCellEvents(mobileDay,h);
+function renderMobileCal(){
+    var d=new Date(weekStart);d.setDate(d.getDate()+mobileDay);
+    var lbl=document.getElementById('m-day-label');
+    if(lbl)lbl.textContent=DAYS[mobileDay]+' '+d.getDate()+'/'+(d.getMonth()+1);
+    var body=document.getElementById('m-day-body');if(!body)return;
+    var hours=getHours();
+    body.innerHTML=hours.map(function(h){
+        var evs=getCellEvents(mobileDay,h);
         return '<div class="hour-row"><div class="hour-label">'+String(h).padStart(2,'0')+':00</div><div class="hour-events">'+evs.map(function(e){return '<div class="cal-event '+e.type+'">'+e.text+'</div>';}).join('')+'</div></div>';
-    }).join('') || '<div class="empty-msg">אין אירועים ביום זה</div>';
+    }).join('')||'<div class="empty-msg">No events</div>';
 }
 
-function changeWeek(dir) { weekStart.setDate(weekStart.getDate()+dir*7); renderCalendar(); }
-function changeMobileDay(dir) { mobileDay=(mobileDay+dir+7)%7; renderMobileCal(); }
+function changeWeek(dir){weekStart.setDate(weekStart.getDate()+dir*7);renderCalendar();}
+function changeMobileDay(dir){mobileDay=(mobileDay+dir+7)%7;renderMobileCal();}
 
-function buildCalUrl(title, desc, startDt, durationMins) {
-    var sd = new Date(startDt);
-    var ed = new Date(sd.getTime() + durationMins*60000);
-    function fmt(dt) { return dt.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z'; }
+function buildCalUrl(title,desc,startDt,durationMins){
+    var sd=new Date(startDt);
+    var ed=new Date(sd.getTime()+durationMins*60000);
+    function fmt(dt){return dt.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';}
     return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(title)+'&details='+encodeURIComponent(desc||'')+'&dates='+fmt(sd)+'/'+fmt(ed);
 }
 
-function renderTasks() {
+function renderTasks(){
     ['d','m'].forEach(function(ctx){
-        var el = document.getElementById(ctx+'-tasks'); if (!el) return;
-        if (!tasks.length) { el.innerHTML='<div class="empty-msg">אין משימות. הוסף משימה ראשונה!</div>'; return; }
-        var html = '';
+        var el=document.getElementById(ctx+'-tasks');if(!el)return;
+        if(!tasks.length){el.innerHTML='<div class="empty-msg">No tasks yet</div>';return;}
+        var html='';
         tasks.forEach(function(t){
-            var due = t.dueTime ? t.dueDate+' '+t.dueTime : t.dueDate;
-            var remaining = t.remainingTime!==undefined ? t.remainingTime : t.estimatedTime;
-            var isPartial = remaining>0 && remaining<t.estimatedTime && !t.completed;
-            var allS = (t.sessions&&t.sessions.length) ? t.sessions : (t.plannedDateTime?[{dateTime:t.plannedDateTime,duration:t.estimatedTime}]:[]);
-            var hasPlanned = allS.length > 0;
-            var days = Math.ceil((new Date(t.dueDate)-new Date())/86400000);
-            var cardClass = t.completed?'done':isPartial?'partial':hasPlanned?'planned':'';
-            html += '<div class="task-card '+cardClass+'">';
-            html += '<div class="task-header"><div>';
-            html += '<span class="task-name'+(t.completed?' done-text':'')+'">'+t.name+'</span><br>';
-            html += '<span class="badge badge-subject">'+t.subject+'</span>';
-            if (hasPlanned&&!isPartial) html += '<span class="badge badge-planned">✓ מתוכנן</span>';
-            if (isPartial) html += '<span class="badge badge-partial">⏳ '+remaining+' דק\' נשאר</span>';
-            if (days<=1&&!t.completed) html += '<span class="badge badge-urgent">🔴 דחוף!</span>';
-            html += '</div><button class="btn-danger" onclick="deleteTask('+t.id+')">🗑️</button></div>';
-            html += '<div class="task-meta">⏰ '+t.estimatedTime+' דק\'';
-            if (isPartial) html += ' | ⏳ נשאר '+remaining+' דק\'';
-            html += ' | 📅 '+due+'</div>';
-            if (t.description) html += '<div class="task-meta">📝 '+t.description+'</div>';
-            if (t.helpNeeded) {
-                var who = (t.helpMom?'אמא':'')+(t.helpMom&&t.helpDad?' ו':'')+(t.helpDad?'אבא':'');
-                html += '<div class="task-help">🤝 עזרה מ'+who+(t.helpMessage?' — '+t.helpMessage:'')+'</div>';
+            var due=t.dueTime?t.dueDate+' '+t.dueTime:t.dueDate;
+            var remaining=t.remainingTime!==undefined?t.remainingTime:t.estimatedTime;
+            var isPartial=remaining>0&&remaining<t.estimatedTime&&!t.completed;
+            var allS=(t.sessions&&t.sessions.length)?t.sessions:(t.plannedDateTime?[{dateTime:t.plannedDateTime,duration:t.estimatedTime}]:[]);
+            var hasPlanned=allS.length>0;
+            var days=Math.ceil((new Date(t.dueDate)-new Date())/86400000);
+            var cardClass=t.completed?'done':isPartial?'partial':hasPlanned?'planned':'';
+            html+='<div class="task-card '+cardClass+'">';
+            html+='<div class="task-header"><div>';
+            html+='<span class="task-name'+(t.completed?' done-text':'')+'">'+t.name+'</span><br>';
+            html+='<span class="badge badge-subject">'+t.subject+'</span>';
+            if(hasPlanned&&!isPartial)html+='<span class="badge badge-planned">Planned</span>';
+            if(isPartial)html+='<span class="badge badge-partial">'+remaining+' min left</span>';
+            if(days<=1&&!t.completed)html+='<span class="badge badge-urgent">Urgent</span>';
+            html+='</div><button class="btn-danger" onclick="deleteTask('+t.id+')">X</button></div>';
+            html+='<div class="task-meta">'+t.estimatedTime+' min | '+due+'</div>';
+            if(t.description)html+='<div class="task-meta">'+t.description+'</div>';
+            if(t.helpNeeded)html+='<div class="task-help">Help needed'+(t.helpMessage?': '+t.helpMessage:'')+'</div>';
+            allS.forEach(function(s,i){
+                if(!s.dateTime)return;
+                var sd=new Date(s.dateTime);
+                html+='<div class="task-planned-info">Planned: '+sd.toLocaleDateString('he-IL')+'</div>';
+            });
+            if(isPartial)html+='<div class="task-partial-info">'+remaining+' min remaining</div>';
+            html+='<div class="task-actions">';
+            html+='<label class="task-done-check"><input type="checkbox"'+(t.completed?' checked':'')+' onchange="toggleDone('+t.id+')"> Done</label>';
+            if(!t.completed){
+                var planLabel=isPartial?'Add time':hasPlanned?'Change':'Plan';
+                html+='<button class="btn-success" onclick="openPlan('+t.id+')">'+planLabel+'</button>';
             }
             allS.forEach(function(s,i){
-                if (!s.dateTime) return;
-                var sd = new Date(s.dateTime);
-                html += '<div class="task-planned-info">✅';
-                if (allS.length>1) html += ' חלק '+(i+1)+':';
-                html += ' '+sd.toLocaleDateString('he-IL',{weekday:'short',day:'numeric',month:'numeric'})+' '+sd.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
-                if (allS.length>1) html += ' ('+s.duration+' דק\')';
-                html += '</div>';
+                if(!s.dateTime)return;
+                var desc=(t.description||'')+(t.helpMessage?'\n'+t.helpMessage:'');
+                var title=t.name+' - '+t.subject;
+                var url=buildCalUrl(title,desc,s.dateTime,s.duration);
+                html+='<a href="'+url+'" target="_blank" class="btn-gcal">Cal</a>';
             });
-            if (isPartial) html += '<div class="task-partial-info">⏳ נשאר '+remaining+' דקות — לחץ הוסף זמן</div>';
-            html += '<div class="task-actions">';
-            html += '<label class="task-done-check"><input type="checkbox"'+(t.completed?' checked':'')+' onchange="toggleDone('+t.id+')"> הושלמה</label>';
-            if (!t.completed) {
-                var planLabel = isPartial ? 'הוסף זמן' : hasPlanned ? 'שנה' : 'תכנן';
-                html += '<button class="btn-success" onclick="openPlan('+t.id+')">📅 '+planLabel+'</button>';
-            }
-            allS.forEach(function(s,i){
-                if (!s.dateTime) return;
-                var desc = (t.description||'')+(t.helpMessage?'\nעזרה: '+t.helpMessage:'');
-                var title = allS.length>1 ? t.name+' (חלק '+(i+1)+') - '+t.subject : t.name+' - '+t.subject;
-                var url = buildCalUrl(title, desc, s.dateTime, s.duration);
-                html += '<a href="'+url+'" target="_blank" class="btn-gcal">📅'+(allS.length>1?' '+(i+1):'')+'</a>';
-            });
-            if (t.helpNeeded) html += '<button class="btn-whatsapp" onclick="showWAById('+t.id+',\''+ctx+'\')">💬 WhatsApp</button>';
-            html += '</div></div>';
+            if(t.helpNeeded)html+='<button class="btn-whatsapp" onclick="showWAById('+t.id+',\''+ctx+'\')">WA</button>';
+            html+='</div></div>';
         });
-        el.innerHTML = html;
+        el.innerHTML=html;
     });
     updateStats();
 }
 
-function showWAById(id, ctx) {
-    var t = tasks.find(function(t){return t.id===id;});
-    if (t) showWA(t, ctx);
+function showWAById(id,ctx){
+    var t=tasks.find(function(x){return x.id===id;});
+    if(t)showWA(t,ctx);
 }
 
-function updateStats() {
-    var tot=tasks.length, pend=tasks.filter(function(t){return !t.completed;}).length;
+function updateStats(){
+    var tot=tasks.length,pend=tasks.filter(function(t){return !t.completed;}).length;
     var hrs=(tasks.filter(function(t){return !t.completed;}).reduce(function(s,t){return s+(t.remainingTime!==undefined?t.remainingTime:t.estimatedTime);},0)/60).toFixed(1);
     ['d','m'].forEach(function(p){
         var a=document.getElementById(p+'-total'),b=document.getElementById(p+'-pending'),c=document.getElementById(p+'-hours');
-        if(a)a.textContent=tot; if(b)b.textContent=pend; if(c)c.textContent=hrs;
+        if(a)a.textContent=tot;if(b)b.textContent=pend;if(c)c.textContent=hrs;
     });
 }
 
-function renderSchedule() {
+function renderSchedule(){
     ['d','m'].forEach(function(ctx){
-        var el = document.getElementById(ctx+'-schedule'); if (!el) return;
-        var pending = tasks.filter(function(t){return !t.completed;}).sort(function(a,b){return new Date(a.dueDate+'T'+(a.dueTime||'23:59'))-new Date(b.dueDate+'T'+(b.dueTime||'23:59'));});
-        if (!pending.length) { el.innerHTML='<p class="empty-msg">אין משימות ממתינות 🎉</p>'; return; }
-        var html = '';
+        var el=document.getElementById(ctx+'-schedule');if(!el)return;
+        var pending=tasks.filter(function(t){return !t.completed;}).sort(function(a,b){return new Date(a.dueDate)-new Date(b.dueDate);});
+        if(!pending.length){el.innerHTML='<p class="empty-msg">All done!</p>';return;}
+        var html='';
         pending.forEach(function(t,i){
             var days=Math.ceil((new Date(t.dueDate)-new Date())/86400000);
-            var urg=days<=1?'🔴 דחוף!':days<=3?'🟡 בקרוב':'🟢 יש זמן';
+            var urg=days<=1?'URGENT':days<=3?'Soon':'OK';
             var remaining=t.remainingTime!==undefined?t.remainingTime:t.estimatedTime;
-            var allS=(t.sessions&&t.sessions.length)?t.sessions:(t.plannedDateTime?[{dateTime:t.plannedDateTime,duration:t.estimatedTime}]:[]);
-            html += '<div class="schedule-card"><div class="schedule-card-title">'+(i+1)+'. '+t.name+' '+urg+'</div>';
-            html += '<div class="schedule-card-meta">📘 '+t.subject+' | ⏱️ '+remaining+' דק\' | 📅 '+t.dueDate+(days>=0?' | ⏳ '+days+' ימים':'');
-            allS.forEach(function(s,si){
-                if (!s.dateTime) return;
-                var p=new Date(s.dateTime);
-                html += '<br>✅'+(allS.length>1?' חלק '+(si+1)+':':'')+' '+p.toLocaleDateString('he-IL',{weekday:'short',day:'numeric',month:'numeric'})+' '+p.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
-            });
-            html += '</div></div>';
+            html+='<div class="schedule-card"><div class="schedule-card-title">'+(i+1)+'. '+t.name+' '+urg+'</div>';
+            html+='<div class="schedule-card-meta">'+t.subject+' | '+remaining+' min | '+t.dueDate+'</div></div>';
         });
-        el.innerHTML = html;
+        el.innerHTML=html;
     });
 }
 
-function openPlan(id) {
-    planTaskId=id; selSlot=null;
-    var task=tasks.find(function(t){return t.id===id;}); if (!task) return;
+function openPlan(id){
+    planTaskId=id;selSlot=null;
+    var task=tasks.find(function(t){return t.id===id;});if(!task)return;
     var remaining=task.remainingTime!==undefined?task.remainingTime:task.estimatedTime;
-    document.getElementById('plan-task-info').innerHTML =
-        '<div style="background:#f0f4ff;padding:12px;border-radius:8px;margin-bottom:14px">'+
-        '<strong style="color:#667eea">'+task.name+'</strong><br>'+
-        '<small>'+task.subject+' | נשאר: <strong>'+remaining+' דק\'</strong> | הגשה: '+task.dueDate+'</small></div>'+
-        '<div style="font-weight:600;margin-bottom:10px">בחר זמן פנוי:</div>';
+    document.getElementById('plan-task-info').innerHTML='<div style="padding:12px;background:#f0f4ff;border-radius:8px;margin-bottom:14px"><strong>'+task.name+'</strong><br><small>'+task.subject+' | '+remaining+' min remaining</small></div><div style="font-weight:600;margin-bottom:10px">Select free slot:</div>';
     var slots=findSlots(task);
     var sd=document.getElementById('plan-slots');
-    if (!slots.length) { sd.innerHTML='<p style="color:#f44336;text-align:center;padding:15px">😔 אין זמנים פנויים. הוסף שעות פנויות!</p>'; }
-    else {
-        var shtml='';
-        slots.forEach(function(s,i){
-            var d=new Date(s.dt), isShort=s.dur<remaining;
-            shtml += '<div class="slot-option'+(isShort?' short':'')+'" onclick="selSlotFn('+i+',\''+s.dt+'\','+s.dur+','+(isShort?'true':'false')+')">';
-            shtml += '<strong>'+d.toLocaleDateString('he-IL',{weekday:'long',day:'numeric',month:'numeric'})+'</strong>';
-            if (isShort) shtml += ' <small style="color:#e65100">(חלקי)</small>';
-            shtml += '<br><span style="color:#667eea">⏰ '+d.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})+' - '+s.end+'</span>';
-            shtml += ' <span style="background:'+(isShort?'#fff3e0':'#e8f5e9')+';padding:2px 8px;border-radius:5px;font-size:12px">'+s.dur+' דק\' פנוי</span>';
-            if (isShort) shtml += '<br><small style="color:#e65100">יש זמן ל-'+s.dur+' מתוך '+remaining+' דקות נדרשות</small>';
-            shtml += '</div>';
-        });
-        sd.innerHTML = shtml;
-    }
+    if(!slots.length){sd.innerHTML='<p style="color:#f44336;text-align:center">No free slots. Add free times first!</p>';return;}
+    var shtml='';
+    slots.forEach(function(s,i){
+        var d=new Date(s.dt),isShort=s.dur<remaining;
+        shtml+='<div class="slot-option'+(isShort?' short':'')+'" onclick="selSlotFn('+i+',\''+s.dt+'\','+s.dur+','+(isShort?'true':'false')+')">';
+        shtml+='<strong>'+d.toLocaleDateString('he-IL',{weekday:'long',day:'numeric',month:'numeric'})+'</strong>';
+        if(isShort)shtml+=' <small style="color:#e65100">(partial)</small>';
+        shtml+='<br><span style="color:#667eea">'+d.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})+' - '+s.end+'</span>';
+        shtml+=' <span style="background:'+(isShort?'#fff3e0':'#e8f5e9')+';padding:2px 8px;border-radius:5px;font-size:12px">'+s.dur+' min free</span>';
+        shtml+='</div>';
+    });
+    sd.innerHTML=shtml;
     document.getElementById('plan-modal').style.display='block';
 }
 
-function selSlotFn(i, dt, dur, isShort) {
-    selSlot={dt:dt, dur:dur, isShort:isShort};
+function selSlotFn(i,dt,dur,isShort){
+    selSlot={dt:dt,dur:dur,isShort:isShort};
     document.querySelectorAll('.slot-option').forEach(function(el,idx){el.classList.toggle('selected',idx===i);});
 }
 
-function closePlan() { document.getElementById('plan-modal').style.display='none'; selSlot=null; planTaskId=null; }
+function closePlan(){document.getElementById('plan-modal').style.display='none';selSlot=null;planTaskId=null;}
 
-function confirmPlan() {
-    if (!selSlot||!planTaskId) { alert('אנא בחר זמן'); return; }
-    var task=tasks.find(function(t){return t.id===planTaskId;}); if (!task) return;
+function confirmPlan(){
+    if(!selSlot||!planTaskId){alert('Select a slot');return;}
+    var task=tasks.find(function(t){return t.id===planTaskId;});if(!task)return;
     var remaining=task.remainingTime!==undefined?task.remainingTime:task.estimatedTime;
-    if (selSlot.isShort) { closePlan(); openPartialModal(task,selSlot.dt,selSlot.dur,remaining); }
-    else {
-        if (!task.sessions) task.sessions=[];
-        task.sessions.push({dateTime:selSlot.dt, duration:remaining});
-        task.plannedDateTime=selSlot.dt; task.remainingTime=0;
-        save(); renderAll(); closePlan();
+    if(selSlot.isShort){closePlan();openPartialModal(task,selSlot.dt,selSlot.dur,remaining);}
+    else{
+        if(!task.sessions)task.sessions=[];
+        task.sessions.push({dateTime:selSlot.dt,duration:remaining});
+        task.plannedDateTime=selSlot.dt;task.remainingTime=0;
+        save();renderAll();closePlan();
     }
 }
 
-function openPartialModal(task, dt, availDur, remaining) {
-    partialTaskId=task.id; partialSlot={dt:dt, availDur:availDur};
-    document.getElementById('partial-info').innerHTML =
-        '<div style="background:#fff8f0;padding:12px;border-radius:8px;margin-bottom:10px;border:2px solid #ff9800">'+
-        '<strong style="color:#e65100">'+task.name+'</strong><br>'+
-        '<small>זמן פנוי: <strong>'+availDur+' דקות</strong> | נדרש: <strong>'+remaining+' דקות</strong></small></div>';
+function openPartialModal(task,dt,availDur,remaining){
+    partialTaskId=task.id;partialSlot={dt:dt,availDur:availDur};
+    document.getElementById('partial-info').innerHTML='<div style="padding:12px;background:#fff8f0;border-radius:8px;margin-bottom:10px;border:2px solid #ff9800"><strong>'+task.name+'</strong><br><small>Available: '+availDur+' min | Needed: '+remaining+' min</small></div>';
     var input=document.getElementById('partial-minutes');
-    input.value=availDur; input.max=availDur;
-    document.getElementById('partial-hint').textContent='מקסימום '+availDur+' דקות. השאר יתוכנן בנפרד.';
+    input.value=availDur;input.max=availDur;
+    document.getElementById('partial-hint').textContent='Max '+availDur+' min. Rest will be scheduled separately.';
     document.getElementById('partial-modal').style.display='block';
 }
 
-function closePartial() { document.getElementById('partial-modal').style.display='none'; partialTaskId=null; partialSlot=null; }
+function closePartial(){document.getElementById('partial-modal').style.display='none';partialTaskId=null;partialSlot=null;}
 
-function confirmPartial() {
+function confirmPartial(){
     var mins=parseInt(document.getElementById('partial-minutes').value)||0;
-    var task=tasks.find(function(t){return t.id===partialTaskId;}); if (!task){closePartial();return;}
-    if (mins<=0||mins>partialSlot.availDur) { alert('אנא הזן מספר דקות תקין (עד '+partialSlot.availDur+')'); return; }
+    var task=tasks.find(function(t){return t.id===partialTaskId;});if(!task){closePartial();return;}
+    if(mins<=0||mins>partialSlot.availDur){alert('Invalid minutes');return;}
     var remaining=task.remainingTime!==undefined?task.remainingTime:task.estimatedTime;
-    if (!task.sessions) task.sessions=[];
-    task.sessions.push({dateTime:partialSlot.dt, duration:mins});
+    if(!task.sessions)task.sessions=[];
+    task.sessions.push({dateTime:partialSlot.dt,duration:mins});
     task.plannedDateTime=partialSlot.dt;
     task.remainingTime=Math.max(0,remaining-mins);
-    save(); renderAll(); closePartial();
-    if (task.remainingTime>0) alert('✅ תוכנן '+mins+' דקות!\n\nנשאר עוד '+task.remainingTime+' דקות.\nלחץ הוסף זמן לתכנון ההמשך.');
+    save();renderAll();closePartial();
+    if(task.remainingTime>0)alert('Planned '+mins+' min. '+task.remainingTime+' min remaining.');
 }
 
-function findSlots(task) {
-    var slots=[], remaining=task.remainingTime!==undefined?task.remainingTime:task.estimatedTime;
+function findSlots(task){
+    var slots=[],remaining=task.remainingTime!==undefined?task.remainingTime:task.estimatedTime;
     var due=new Date(task.dueDate+'T'+(task.dueTime||'23:59'));
-    for (var off=0;off<14;off++) {
-        var day=new Date(); day.setDate(day.getDate()+off); day.setHours(0,0,0,0);
-        if (day>due) break;
+    for(var off=0;off<14;off++){
+        var day=new Date();day.setDate(day.getDate()+off);day.setHours(0,0,0,0);
+        if(day>due)break;
         var dow=day.getDay();
         freeTimes.forEach(function(ft){
             var match=ft.type==='recurring'&&parseInt(ft.day)===dow;
-            if (!match&&ft.type==='oneTime') match=ft.oneTimeDate===day.toISOString().split('T')[0];
-            if (!match) return;
+            if(!match&&ft.type==='oneTime')match=ft.oneTimeDate===day.toISOString().split('T')[0];
+            if(!match)return;
             var parts=ft.time.split(':');
-            var start=new Date(day); start.setHours(parseInt(parts[0]),parseInt(parts[1]),0,0);
+            var start=new Date(day);start.setHours(parseInt(parts[0]),parseInt(parts[1]),0,0);
             var occ=tasks.some(function(t){
-                if (t.id===task.id) return false;
+                if(t.id===task.id)return false;
                 var allS=(t.sessions&&t.sessions.length)?t.sessions:(t.plannedDateTime?[{dateTime:t.plannedDateTime,duration:t.estimatedTime}]:[]);
                 return allS.some(function(s){
-                    if (!s.dateTime) return false;
-                    var ps=new Date(s.dateTime), pe=new Date(ps.getTime()+s.duration*60000);
+                    if(!s.dateTime)return false;
+                    var ps=new Date(s.dateTime),pe=new Date(ps.getTime()+s.duration*60000);
                     var se=new Date(start.getTime()+Math.min(ft.duration,remaining)*60000);
                     return start<pe&&se>ps;
                 });
             });
-            if (!occ) {
+            if(!occ){
                 var end=new Date(start.getTime()+Math.min(ft.duration,remaining)*60000);
-                slots.push({dt:start.toISOString().slice(0,16), end:end.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}), dur:ft.duration});
+                slots.push({dt:start.toISOString().slice(0,16),end:end.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}),dur:ft.duration});
             }
         });
     }
     return slots.sort(function(a,b){return new Date(a.dt)-new Date(b.dt);}).slice(0,12);
 }
 
-function exportAllCal() {
-    var planned=tasks.filter(function(t){return (t.sessions&&t.sessions.length>0)||t.plannedDateTime;});
-    if (!planned.length) { alert('אין משימות מתוכננות לייצוא'); return; }
+function exportAllCal(){
+    var planned=tasks.filter(function(t){return(t.sessions&&t.sessions.length>0)||t.plannedDateTime;});
+    if(!planned.length){alert('No planned tasks');return;}
     var count=0;
     planned.forEach(function(t){
         var allS=(t.sessions&&t.sessions.length>0)?t.sessions:[{dateTime:t.plannedDateTime,duration:t.estimatedTime}];
         allS.forEach(function(s,i){
-            if (!s.dateTime) return;
+            if(!s.dateTime)return;
             setTimeout(function(){
-                var title=allS.length>1?t.name+' (חלק '+(i+1)+') - '+t.subject:t.name+' - '+t.subject;
-                var desc=(t.description||'')+(t.helpMessage?'\nעזרה: '+t.helpMessage:'');
+                var title=t.name+' - '+t.subject;
+                var desc=(t.description||'')+(t.helpMessage?'\n'+t.helpMessage:'');
                 window.open(buildCalUrl(title,desc,s.dateTime,s.duration),'_blank');
-            }, count*700);
+            },count*700);
             count++;
         });
     });
 }
 
-function renderAll() { renderTasks(); renderFreeLists(); renderCalendar(); renderSchedule(); }
+function renderAll(){renderTasks();renderFreeLists();renderCalendar();renderSchedule();}
 
 window.onclick=function(e){
     if(e.target===document.getElementById('plan-modal'))closePlan();
     if(e.target===document.getElementById('partial-modal'))closePartial();
 };
 
-document.addEventListener('DOMContentLoaded', function(){
-    load(); renderAll();
+document.addEventListener('DOMContentLoaded',function(){
+    load();renderAll();
     ['d','m'].forEach(function(ctx){
         ['mom','dad','alone'].forEach(function(id){
-            var el=document.getElementById(ctx+'-'+id); if(!el)return;
+            var el=document.getElementById(ctx+'-'+id);if(!el)return;
             el.addEventListener('change',function(){
                 var needs=document.getElementById(ctx+'-mom').checked||document.getElementById(ctx+'-dad').checked;
                 document.getElementById(ctx+'-alone').checked=!needs;
@@ -989,7 +977,7 @@ document.addEventListener('DOMContentLoaded', function(){
         if(!partialSlot)return;
         var t=tasks.find(function(t){return t.id===partialTaskId;});
         var rem=t?t.remainingTime||t.estimatedTime:0;
-        document.getElementById('partial-hint').textContent='יבוצע: '+this.value+' דק\' | יישאר: '+Math.max(0,rem-parseInt(this.value||0))+' דק\'';
+        document.getElementById('partial-hint').textContent=this.value+' min now | '+(rem-parseInt(this.value||0))+' min remaining';
     });
 });
 </script>
