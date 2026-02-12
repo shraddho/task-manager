@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>מנהל משימות</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+        body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); min-height:100vh; direction:rtl; }
+        .header { background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:white; padding:15px 20px; text-align:center; position:sticky; top:0; z-index:100; box-shadow:0 2px 10px rgba(0,0,0,0.3); }
+        .header h1 { font-size:20px; }
+        .header p { font-size:12px; opacity:0.85; margin-top:3px; }
+        .sync-bar { background:#fff9e6; border-bottom:2px solid #ffc107; padding:10px 15px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; font-size:13px; }
+        .sync-status { display:flex; align-items:center; gap:6px; color:#666; font-size:13px; }
+        .sync-dot { width:10px; height:10px; border-radius:50%; background:#ccc; flex-shrink:0; }
+        .sync-dot.synced { background:#4caf50; }
+        .sync-dot.pending { background:#ffc107; animation:pulse 1s infinite; }
+        .sync-dot.error { background:#f44336; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        .sync-btns { display:flex; gap:8px; flex-wrap:wrap; }
+        .btn-sync { color:white; font-size:13px; padding:8px 14px; min-height:36px; border:none; border-radius:8px; cursor:pointer; font-weight:600; }
+        .bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; background:white; border-top:2px solid #eee; z-index:200; }
+        .bottom-nav-inner { display:grid; grid-template-columns:repeat(4,1fr); }
+        .nav-btn { display:flex; flex-direction:column; align-items:center; padding:10px 5px; background:none; border:none; cursor:pointer; font-size:10px; color:#888; }
+        .nav-btn .icon { font-size:22px; margin-bottom:3px; }
+        .nav-btn.active { color:#667eea; font-weight:700; }
+        .desktop-layout { max-width:1400px; margin:0 auto; background:white; }
+        .desktop-content { padding:20px; }
+        .mobile-layout { display:none; }
+        .mobile-page { display:none; padding:15px; padding-bottom:80px; background:white; min-height:calc(100vh - 55px); }
+        .mobile-page.active { display:block; }
+        .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px; }
+        .stat-card { background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:white; padding:15px 10px; border-radius:12px; text-align:center; }
+        .stat-number { font-size:26px; font-weight:700; }
+        .stat-label { font-size:11px; opacity:0.9; margin-top:2px; }
+        .calendar-wrapper { background:#f8f9fa; border-radius:12px; padding:15px; margin-bottom:20px; }
+        .cal-nav { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+        .cal-nav-btn { padding:8px 14px; background:#667eea; color:white; border:none; border-radius:8px; cursor:pointer; font-size:16px; font-weight:bold; min-width:44px; min-height:44px; }
+        .cal-title { font-weight:600; font-size:14px; text-align:center; flex:1; }
+        .cal-table { width:100%; border-collapse:collapse; background:white; border:2px solid #ddd; }
+        .cal-table th { background:#667eea; color:white; padding:12px 5px; text-align:center; font-size:12px; border:1px solid #5568d3; }
+        .cal-table th.time-col { width:65px; background:#5568d3; }
+        .cal-table td { border:1px solid #e0e0e0; padding:3px; vertical-align:top; height:55px; }
+        .cal-table td.time-cell { background:#f5f5f5; text-align:center; font-weight:600; font-size:11px; color:#666; }
+        .cal-table td.day-cell { background:white; }
+        .cal-table td.has-event { background:#fffde7; }
+        .mobile-cal { display:none; }
+        .mobile-day-nav { display:flex; justify-content:space-between; align-items:center; background:white; border-radius:10px; padding:10px; margin-bottom:10px; box-shadow:0 1px 4px rgba(0,0,0,0.1); }
+        .mobile-day-nav-btn { padding:8px 16px; background:#667eea; color:white; border:none; border-radius:8px; cursor:pointer; font-size:18px; min-width:44px; min-height:44px; }
+        .mobile-day-label { font-weight:700; font-size:16px; text-align:center; color:#333; }
+        .mobile-day-body { background:white; border-radius:10px; padding:10px; box-shadow:0 1px 4px rgba(0,0,0,0.1); min-height:200px; }
+        .hour-row { display:flex; min-height:52px; border-bottom:1px solid #f0f0f0; padding:4px 0; align-items:flex-start; }
+        .hour-label { width:52px; font-size:11px; font-weight:600; color:#999; padding-top:4px; flex-shrink:0; }
+        .hour-events { flex:1; }
+        .cal-event { padding:3px 7px; margin:2px 0; border-radius:4px; font-size:11px; border-right:3px solid; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .cal-event.free-time { background:#f1f8e9; border-color:#8bc34a; color:#33691e; }
+        .cal-event.planned { background:#fff3e0; border-color:#ff9800; color:#e65100; font-weight:600; }
+        .cal-event.deadline { background:#ffebee; border-color:#f44336; color:#b71c1c; font-weight:700; }
+        .legend { display:flex; gap:12px; margin-top:12px; flex-wrap:wrap; font-size:12px; }
+        .legend-item { display:flex; align-items:center; gap:5px; }
+        .legend-dot { width:14px; height:14px; border-radius:3px; }
+        .section { margin-bottom:25px; }
+        .section-title { color:#667eea; font-size:18px; font-weight:700; border-bottom:2px solid #667eea; padding-bottom:8px; margin-bottom:14px; }
+        .form-group { margin-bottom:13px; }
+        .form-label { display:block; margin-bottom:6px; font-weight:600; color:#333; font-size:14px; }
+        .form-input,.form-select,.form-textarea { width:100%; padding:13px; border:2px solid #e0e0e0; border-radius:10px; font-size:16px; font-family:inherit; direction:rtl; text-align:right; background:white; -webkit-appearance:none; appearance:none; }
+        .form-input:focus,.form-select:focus,.form-textarea:focus { outline:none; border-color:#667eea; box-shadow:0 0 0 3px rgba(102,126,234,0.15); }
+        .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        .check-group { display:flex; gap:15px; flex-wrap:wrap; align-items:center; }
+        .check-group label { display:flex; align-items:center; gap:7px; font-size:15px; cursor:pointer; }
+        .check-group input[type=checkbox],.check-group input[type=radio] { width:20px; height:20px; cursor:pointer; accent-color:#667eea; }
+        .radio-group { display:flex; gap:15px; flex-wrap:wrap; align-items:center; margin-top:8px; }
+        .radio-group label { display:flex; align-items:center; gap:7px; font-size:15px; cursor:pointer; }
+        .btn { padding:13px 20px; border:none; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer; transition:all 0.2s; min-height:48px; display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+        .btn:active { transform:scale(0.97); }
+        .btn-primary { background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:white; }
+        .btn-secondary { background:#e8e8e8; color:#333; }
+        .btn-danger { background:#f44336; color:white; padding:8px 13px; font-size:13px; min-height:36px; }
+        .btn-success { background:#4caf50; color:white; padding:9px 14px; font-size:13px; min-height:36px; }
+        .btn-whatsapp { background:#25D366; color:white; padding:9px 14px; font-size:13px; min-height:44px; border:none; border-radius:10px; cursor:pointer; font-weight:600; display:inline-flex; align-items:center; gap:5px; }
+        .btn-google { background:#4285f4; color:white; padding:9px 14px; font-size:13px; min-height:36px; text-decoration:none; border-radius:10px; display:inline-flex; align-items:center; gap:5px; font-weight:600; }
+        .btn-export { background:#4285f4; color:white; font-size:13px; padding:9px 14px; min-height:36px; }
+        .btn-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+        .task-card { background:#f9f9f9; border:2px solid #e0e0e0; border-radius:12px; padding:15px; margin-bottom:12px; border-right:5px solid #667eea; }
+        .task-card.planned { border-right-color:#4caf50; background:#f1f8f4; }
+        .task-card.done { opacity:0.55; }
+        .task-card.partial { border-right-color:#ff9800; background:#fff8f0; }
+        .task-card-header { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:8px; }
+        .task-name { font-size:16px; font-weight:700; color:#222; }
+        .task-name.done-text { text-decoration:line-through; color:#888; }
+        .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; margin:3px 3px 0 0; }
+        .badge-subject { background:#667eea; color:white; }
+        .badge-planned { background:#4caf50; color:white; }
+        .badge-urgent { background:#f44336; color:white; }
+        .badge-partial { background:#ff9800; color:white; }
+        .task-meta { font-size:13px; color:#666; line-height:1.8; margin:6px 0; }
+        .task-help { background:#fff3e0; border-right:4px solid #ff9800; padding:8px 10px; border-radius:6px; font-size:12px; color:#e65100; margin:8px 0; }
+        .task-planned-info { background:#e8f5e9; border-right:4px solid #4caf50; padding:8px 10px; border-radius:6px; font-size:12px; color:#2e7d32; margin:8px 0; }
+        .task-partial-info { background:#fff3e0; border-right:4px solid #ff9800; padding:8px 10px; border-radius:6px; font-size:12px; color:#e65100; margin:8px 0; }
+        .task-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:10px; }
+        .task-done-check { display:flex; align-items:center; gap:7px; cursor:pointer; font-size:14px; }
+        .task-done-check input { width:20px; height:20px; accent-color:#667eea; }
+        .slot-item { background:white; border:1px solid #e0e0e0; border-right:4px solid #667eea; border-radius:8px; padding:10px 12px; margin-top:8px; display:flex; justify-content:space-between; align-items:center; }
+        .slot-item.recurring { border-right-color:#9c27b0; }
+        .slot-info { font-size:13px; line-height:1.7; }
+        .badge-recurring { background:#9c27b0; color:white; padding:2px 8px; border-radius:12px; font-size:11px; margin-left:5px; }
+        .schedule-card { background:white; border-right:4px solid #667eea; border-radius:8px; padding:12px; margin-bottom:8px; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
+        .schedule-card-title { font-weight:700; color:#222; margin-bottom:4px; font-size:14px; }
+        .schedule-card-meta { font-size:13px; color:#666; line-height:1.7; }
+        .modal { display:none; position:fixed; z-index:500; inset:0; background:rgba(0,0,0,0.55); overflow-y:auto; }
+        .modal-box { background:white; margin:5% auto 20px; padding:20px; border-radius:14px; width:92%; max-width:520px; }
+        .modal-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+        .modal-head h3 { color:#667eea; font-size:19px; }
+        .modal-close { font-size:26px; cursor:pointer; color:#aaa; line-height:1; }
+        .slot-option { background:#f9f9f9; border:2px solid #e0e0e0; border-radius:8px; padding:13px; margin-bottom:8px; cursor:pointer; transition:all 0.2s; }
+        .slot-option:hover,.slot-option:active { border-color:#667eea; background:#f0f4ff; }
+        .slot-option.selected { border-color:#667eea; background:#e3f2fd; }
+        .slot-option.short { border-color:#ff9800; background:#fff8f0; }
+        .wa-preview { background:#e8f5e9; border:1px solid #4caf50; border-radius:10px; padding:13px; margin-bottom:12px; font-size:13px; color:#2e7d32; }
+        .wa-message-box { background:white; padding:10px; border-radius:6px; margin:8px 0; white-space:pre-wrap; font-size:13px; line-height:1.6; }
+        .success-bar { background:#c8e6c9; color:#2e7d32; padding:12px 15px; border-radius:8px; margin-bottom:14px; display:none; font-weight:600; }
+        .success-bar.show { display:block; }
+        .empty-msg { text-align:center; padding:30px 15px; color:#aaa; font-size:15px; }
+        .partial-time-input { background:#fff8f0; border:2px solid #ff9800; border-radius:10px; padding:15px; margin:10px 0; }
+        .partial-time-input label { font-weight:600; color:#e65100; margin-bottom:8px; display:block; }
+        @media (max-width:640px) {
+            body { padding:0; }
+            .desktop-layout { display:none; }
+            .mobile-layout { display:block; }
+            .bottom-nav { display:block; }
+            .desktop-cal { display:none; }
+            .mobile-cal { display:block; }
+            .form-row { grid-template-columns:1fr; }
+            .sync-bar { flex-direction:column; align-items:flex-start; }
+        }
+        @media (min-width:641px) {
+            .desktop-layout { display:block; }
+            .mobile-layout { display:none; }
+            .bottom-nav { display:none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>📚 מנהל משימות ומטלות</h1>
+    <p>ניהול זמן חכם למטלות בית הספר</p>
+</div>
+
+<div class="sync-bar">
+    <div class="sync-status">
+        <div class="sync-dot" id="sync-dot"></div>
+        <span id="sync-text">לחץ "התחבר" לסנכרון עם Google Drive</span>
+    </div>
+    <div class="sync-btns">
+        <button class="btn-sync" style="background:#34a853;" onclick="signIn()" id="btn-signin">🔗 התחבר ל-Google</button>
+        <button class="btn-sync" style="background:#1a73e8;display:none;" onclick="saveNow()" id="btn-save">☁️ שמור עכשיו</button>
+        <button class="btn-sync" style="background:#188038;display:none;" onclick="loadNow()" id="btn-load">📥 טען מ-Drive</button>
+        <button class="btn-sync" style="background:#666;" onclick="signOut()" id="btn-signout" style="display:none;">🚪 התנתק</button>
+    </div>
+</div>
+
+<!-- DESKTOP -->
+<div class="desktop-layout">
+  <div class="desktop-content">
+    <div class="success-bar" id="d-success">✓ המטלה נוספה בהצלחה!</div>
+    <div class="section">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+            <div class="section-title" style="margin:0;border:none;padding:0;">📅 היומן השבועי שלי</div>
+            <button class="btn btn-export" onclick="exportAllCal()">📤 ייצא ל-Google Calendar</button>
+        </div>
+        <div class="calendar-wrapper">
+            <div class="cal-nav">
+                <button class="cal-nav-btn" onclick="changeWeek(-1)">→</button>
+                <div class="cal-title" id="d-week-label"></div>
+                <button class="cal-nav-btn" onclick="changeWeek(1)">←</button>
+            </div>
+            <div class="desktop-cal" style="overflow-x:auto;">
+                <table class="cal-table" id="d-cal"></table>
+            </div>
+            <div class="legend">
+                <div class="legend-item"><div class="legend-dot" style="background:#f1f8e9;border-right:3px solid #8bc34a;"></div>זמן פנוי</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#fff3e0;border-right:3px solid #ff9800;"></div>מטלה מתוכננת</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#ffebee;border-right:3px solid #f44336;"></div>הגשה</div>
+            </div>
+        </div>
+    </div>
+    <div class="stats">
+        <div class="stat-card"><div class="stat-number" id="d-total">0</div><div class="stat-label">משימות</div></div>
+        <div class="stat-card"><div class="stat-number" id="d-pending">0</div><div class="stat-label">ממתינות</div></div>
+        <div class="stat-card"><div class="stat-number" id="d-hours">0</div><div class="stat-label">שעות</div></div>
+    </div>
+    <div class="section">
+        <div class="section-title">➕ הוסף משימה חדשה</div>
+        <div class="form-row">
+            <div>
+                <div class="form-group"><label class="form-label">שם המטלה</label><input class="form-input" id="d-name" placeholder="עבודה במתמטיקה"></div>
+                <div class="form-group"><label class="form-label">מקצוע</label>
+                    <select class="form-select" id="d-subject">
+                        <option value="">בחר מקצוע</option>
+                        <option>מתמטיקה</option><option>אנגלית</option><option>עברית</option>
+                        <option>היסטוריה</option><option>מדעים</option><option>גיאוגרפיה</option>
+                        <option>אזרחות</option><option>אומנות</option><option>ספורט</option><option>אחר</option>
+                    </select>
+                </div>
+                <div class="form-group"><label class="form-label">זמן משוער (דקות)</label><input class="form-input" type="number" id="d-time" placeholder="60" min="5"></div>
+            </div>
+            <div>
+                <div class="form-group"><label class="form-label">תאריך הגשה</label><input class="form-input" type="date" id="d-due-date"></div>
+                <div class="form-group"><label class="form-label">שעת הגשה (אופציונלי)</label><input class="form-input" type="time" id="d-due-time"></div>
+                <div class="form-group"><label class="form-label">תיאור / הערות</label><textarea class="form-textarea" id="d-desc" rows="3" placeholder="מידע נוסף..."></textarea></div>
+            </div>
+        </div>
+        <div class="form-group"><label class="form-label">אני צריכה עזרה מ:</label>
+            <div class="check-group">
+                <label><input type="checkbox" id="d-mom">אמא</label>
+                <label><input type="checkbox" id="d-dad">אבא</label>
+                <label><input type="checkbox" id="d-alone" checked>אני יכולה לבד</label>
+            </div>
+        </div>
+        <div class="form-group" id="d-help-div" style="display:none;"><label class="form-label">על מה את צריכה עזרה?</label><textarea class="form-textarea" id="d-help-msg" rows="2"></textarea></div>
+        <div class="btn-row">
+            <button class="btn btn-primary" onclick="addTask('d')">➕ הוסף משימה</button>
+            <button class="btn btn-secondary" onclick="clearForm('d')">🔄 נקה</button>
+        </div>
+    </div>
+    <div class="section">
+        <div class="section-title">🕐 שעות פנויות</div>
+        <div class="form-row">
+            <div class="form-group"><label class="form-label">יום</label>
+                <select class="form-select" id="d-free-day">
+                    <option value="">בחר יום</option>
+                    <option value="0">ראשון</option><option value="1">שני</option><option value="2">שלישי</option>
+                    <option value="3">רביעי</option><option value="4">חמישי</option><option value="5">שישי</option><option value="6">שבת</option>
+                </select>
+            </div>
+            <div class="form-group"><label class="form-label">שעת התחלה</label><input class="form-input" type="time" id="d-free-time"></div>
+        </div>
+        <div class="form-group"><label class="form-label">משך (דקות)</label><input class="form-input" type="number" id="d-free-dur" placeholder="90" min="15"></div>
+        <div class="form-group"><label class="form-label">סוג:</label>
+            <div class="radio-group">
+                <label><input type="radio" name="d-ftype" value="recurring" checked> חוזר כל שבוע</label>
+                <label><input type="radio" name="d-ftype" value="oneTime"> חד פעמי</label>
+            </div>
+        </div>
+        <div class="form-group" id="d-onetime-div" style="display:none;"><label class="form-label">תאריך ספציפי</label><input class="form-input" type="date" id="d-onetime-date"></div>
+        <button class="btn btn-primary" onclick="addFreeTime('d')">➕ הוסף שעה פנויה</button>
+        <div id="d-free-list"></div>
+    </div>
+    <div class="section">
+        <div class="section-title">📋 סדר עדיפויות</div>
+        <div id="d-schedule"><p class="empty-msg">הוסף משימות לראות עדיפויות</p></div>
+    </div>
+    <div class="section">
+        <div class="section-title">📝 המטלות שלי</div>
+        <div id="d-tasks"><div class="empty-msg">אין משימות. הוסף משימה ראשונה!</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE -->
+<div class="mobile-layout">
+    <div class="mobile-page active" id="m-page-cal">
+        <div class="success-bar" id="m-success">✓ המטלה נוספה!</div>
+        <div class="stats">
+            <div class="stat-card"><div class="stat-number" id="m-total">0</div><div class="stat-label">משימות</div></div>
+            <div class="stat-card"><div class="stat-number" id="m-pending">0</div><div class="stat-label">ממתינות</div></div>
+            <div class="stat-card"><div class="stat-number" id="m-hours">0</div><div class="stat-label">שעות</div></div>
+        </div>
+        <div class="calendar-wrapper">
+            <div class="cal-nav">
+                <button class="cal-nav-btn" onclick="changeWeek(-1)">→</button>
+                <div class="cal-title" id="m-week-label"></div>
+                <button class="cal-nav-btn" onclick="changeWeek(1)">←</button>
+            </div>
+            <div class="mobile-cal">
+                <div class="mobile-day-nav">
+                    <button class="mobile-day-nav-btn" onclick="changeMobileDay(-1)">→</button>
+                    <div class="mobile-day-label" id="m-day-label"></div>
+                    <button class="mobile-day-nav-btn" onclick="changeMobileDay(1)">←</button>
+                </div>
+                <div class="mobile-day-body" id="m-day-body"></div>
+            </div>
+            <div class="legend">
+                <div class="legend-item"><div class="legend-dot" style="background:#f1f8e9;border-right:3px solid #8bc34a;"></div>זמן פנוי</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#fff3e0;border-right:3px solid #ff9800;"></div>מתוכנן</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#ffebee;border-right:3px solid #f44336;"></div>הגשה</div>
+            </div>
+        </div>
+        <div class="section">
+            <div class="section-title">📋 סדר עדיפויות</div>
+            <div id="m-schedule"><p class="empty-msg">הוסף משימות לראות עדיפויות</p></div>
+        </div>
+    </div>
+    <div class="mobile-page" id="m-page-add">
+        <div class="section-title">➕ הוסף משימה חדשה</div>
+        <div class="form-group"><label class="form-label">שם המטלה *</label><input class="form-input" id="m-name" placeholder="עבודה במתמטיקה"></div>
+        <div class="form-group"><label class="form-label">מקצוע *</label>
+            <select class="form-select" id="m-subject">
+                <option value="">בחר מקצוע</option>
+                <option>מתמטיקה</option><option>אנגלית</option><option>עברית</option>
+                <option>היסטוריה</option><option>מדעים</option><option>גיאוגרפיה</option>
+                <option>אזרחות</option><option>אומנות</option><option>ספורט</option><option>אחר</option>
+            </select>
+        </div>
+        <div class="form-row" style="grid-template-columns:1fr 1fr;">
+            <div class="form-group"><label class="form-label">זמן (דקות) *</label><input class="form-input" type="number" id="m-time" placeholder="60"></div>
+            <div class="form-group"><label class="form-label">תאריך הגשה *</label><input class="form-input" type="date" id="m-due-date"></div>
+        </div>
+        <div class="form-group"><label class="form-label">שעת הגשה</label><input class="form-input" type="time" id="m-due-time"></div>
+        <div class="form-group"><label class="form-label">תיאור / הערות</label><textarea class="form-textarea" id="m-desc" rows="2" placeholder="מידע נוסף..."></textarea></div>
+        <div class="form-group"><label class="form-label">אני צריכה עזרה מ:</label>
+            <div class="check-group">
+                <label><input type="checkbox" id="m-mom">אמא</label>
+                <label><input type="checkbox" id="m-dad">אבא</label>
+                <label><input type="checkbox" id="m-alone" checked>לבד</label>
+            </div>
+        </div>
+        <div class="form-group" id="m-help-div" style="display:none;"><label class="form-label">על מה?</label><textarea class="form-textarea" id="m-help-msg" rows="2"></textarea></div>
+        <div class="btn-row">
+            <button class="btn btn-primary" style="flex:1;" onclick="addTask('m')">➕ הוסף משימה</button>
+            <button class="btn btn-secondary" onclick="clearForm('m')">🔄</button>
+        </div>
+    </div>
+    <div class="mobile-page" id="m-page-tasks">
+        <div class="section-title">📝 המטלות שלי</div>
+        <div id="m-tasks"><div class="empty-msg">אין משימות. לחץ ➕ להוספה!</div></div>
+    </div>
+    <div class="mobile-page" id="m-page-free">
+        <div class="section-title">🕐 שעות פנויות</div>
+        <div class="form-group"><label class="form-label">יום</label>
+            <select class="form-select" id="m-free-day">
+                <option value="">בחר יום</option>
+                <option value="0">ראשון</option><option value="1">שני</option><option value="2">שלישי</option>
+                <option value="3">רביעי</option><option value="4">חמישי</option><option value="5">שישי</option><option value="6">שבת</option>
+            </select>
+        </div>
+        <div class="form-row" style="grid-template-columns:1fr 1fr;">
+            <div class="form-group"><label class="form-label">שעת התחלה</label><input class="form-input" type="time" id="m-free-time"></div>
+            <div class="form-group"><label class="form-label">משך (דקות)</label><input class="form-input" type="number" id="m-free-dur" placeholder="90"></div>
+        </div>
+        <div class="form-group"><label class="form-label">סוג:</label>
+            <div class="radio-group">
+                <label><input type="radio" name="m-ftype" value="recurring" checked> חוזר כל שבוע</label>
+                <label><input type="radio" name="m-ftype" value="oneTime"> חד פעמי</label>
+            </div>
+        </div>
+        <div class="form-group" id="m-onetime-div" style="display:none;"><label class="form-label">תאריך ספציפי</label><input class="form-input" type="date" id="m-onetime-date"></div>
+        <button class="btn btn-primary" style="width:100%;" onclick="addFreeTime('m')">➕ הוסף שעה פנויה</button>
+        <div id="m-free-list"></div>
+    </div>
+</div>
+
+<div class="bottom-nav">
+    <div class="bottom-nav-inner">
+        <button class="nav-btn active" id="nb-cal" onclick="goPage('cal')"><span class="icon">📅</span>יומן</button>
+        <button class="nav-btn" id="nb-add" onclick="goPage('add')"><span class="icon">➕</span>הוסף</button>
+        <button class="nav-btn" id="nb-tasks" onclick="goPage('tasks')"><span class="icon">📝</span>משימות</button>
+        <button class="nav-btn" id="nb-free" onclick="goPage('free')"><span class="icon">🕐</span>פנוי</button>
+    </div>
+</div>
+
+<div class="modal" id="plan-modal">
+    <div class="modal-box">
+        <div class="modal-head"><h3>📅 תכנן מתי לבצע</h3><span class="modal-close" onclick="closePlan()">&times;</span></div>
+        <div id="plan-task-info"></div>
+        <div id="plan-slots"></div>
+        <div class="btn-row" style="margin-top:14px;">
+            <button class="btn btn-primary" onclick="confirmPlan()">✓ אשר</button>
+            <button class="btn btn-secondary" onclick="closePlan()">ביטול</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="partial-modal">
+    <div class="modal-box">
+        <div class="modal-head"><h3>⏱️ חלוקת מטלה לחלקים</h3><span class="modal-close" onclick="closePartial()">&times;</span></div>
+        <div id="partial-info"></div>
+        <div class="partial-time-input">
+            <label>כמה דקות לבצע עכשיו?</label>
+            <input class="form-input" type="number" id="partial-minutes" min="5">
+            <div id="partial-hint" style="color:#888;font-size:12px;margin-top:6px;"></div>
+        </div>
+        <div class="btn-row" style="margin-top:14px;">
+            <button class="btn btn-primary" onclick="confirmPartial()">✓ אשר</button>
+            <button class="btn btn-secondary" onclick="closePartial()">ביטול</button>
+        </div>
+    </div>
+</div>
+
+<!-- Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async></script>
+
+<script>
+const CLIENT_ID='691427751503-ut47ai714s9a0u0o96d3r66i5pgl95nj.apps.googleusercontent.com';
+const SCOPES='https://www.googleapis.com/auth/drive.file';
+const FILE_NAME='task_manager_data.json';
+
+let tasks=[],freeTimes=[];
+let weekStart=new Date();
+weekStart.setDate(weekStart.getDate()-weekStart.getDay());
+weekStart.setHours(0,0,0,0);
+let mobileDay=new Date().getDay();
+let selSlot=null,planTaskId=null,partialTaskId=null,partialSlot=null;
+let tokenClient=null,accessToken=null,driveFileId=null,autoSaveTimer=null;
+const DAYS=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+
+// ===== שמירה מקומית =====
+function save(){
+    try{
+        localStorage.setItem('tasks',JSON.stringify(tasks));
+        localStorage.setItem('fts',JSON.stringify(freeTimes));
+        scheduleAutoSave();
+    }catch(e){}
+}
+function load(){
+    try{
+        const t=localStorage.getItem('tasks'),f=localStorage.getItem('fts');
+        if(t)tasks=JSON.parse(t);
+        if(f)freeTimes=JSON.parse(f);
+    }catch(e){}
+}
+
+// ===== Google Drive =====
+function setSyncUI(state,text){
+    const dot=document.getElementById('sync-dot');
+    const txt=document.getElementById('sync-text');
+    if(dot)dot.className='sync-dot '+(state==='ok'?'synced':state==='work'?'pending':state==='err'?'error':'');
+    if(txt)txt.textContent=text;
+}
+
+function signIn(){
+    if(!window.google){alert('טוען Google... נסה שוב בעוד שנייה.');return;}
+    tokenClient=google.accounts.oauth2.initTokenClient({
+        client_id:CLIENT_ID,
+        scope:SCOPES,
+        callback:(resp)=>{
+            if(resp.error){setSyncUI('err','שגיאה: '+resp.error);return;}
+            accessToken=resp.access_token;
+            document.getElementById('btn-signin').style.display='none';
+            document.getElementById('btn-save').style.display='inline-flex';
+            document.getElementById('btn-load').style.display='inline-flex';
+            document.getElementById('btn-signout').style.display='inline-flex';
+            setSyncUI('ok','מחובר ל-Google Drive ✓');
+            loadNow();
+        }
+    });
+    tokenClient.requestAccessToken();
+}
+
+function signOut(){
+    if(accessToken)google.accounts.oauth2.revoke(accessToken);
+    accessToken=null; driveFileId=null;
+    document.getElementById('btn-signin').style.display='inline-flex';
+    document.getElementById('btn-save').style.display='none';
+    document.getElementById('btn-load').style.display='none';
+    document.getElementById('btn-signout').style.display='none';
+    setSyncUI('','לחץ "התחבר" לסנכרון עם Google Drive');
+}
+
+function scheduleAutoSave(){
+    if(!accessToken)return;
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer=setTimeout(saveNow,3000);
+    setSyncUI('work','שומר...');
+}
+
+async function saveNow(){
+    if(!accessToken){alert('אנא התחבר תחילה ל-Google Drive');return;}
+    try{
+        setSyncUI('work','שומר...');
+        const data=JSON.stringify({tasks,freeTimes,savedAt:new Date().toISOString()});
+        if(!driveFileId){
+            // חפש קובץ קיים
+            const search=await fetch(
+                "https://www.googleapis.com/drive/v3/files?q=name='"+FILE_NAME+"'+and+trashed=false&spaces=drive&fields=files(id,name)",
+                {headers:{Authorization:'Bearer '+accessToken}}
+            );
+            const res=await search.json();
+            if(res.files&&res.files.length>0)driveFileId=res.files[0].id;
+        }
+        if(driveFileId){
+            await fetch('https://www.googleapis.com/upload/drive/v3/files/'+driveFileId+'?uploadType=media',{
+                method:'PATCH',
+                headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},
+                body:data
+            });
+        } else {
+            const meta={name:FILE_NAME,mimeType:'application/json'};
+            const form=new FormData();
+            form.append('metadata',new Blob([JSON.stringify(meta)],{type:'application/json'}));
+            form.append('file',new Blob([data],{type:'application/json'}));
+            const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{
+                method:'POST',headers:{Authorization:'Bearer '+accessToken},body:form
+            });
+            const j=await r.json();
+            driveFileId=j.id;
+        }
+        setSyncUI('ok','נשמר ✓ '+new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}));
+    }catch(e){setSyncUI('err','שגיאה בשמירה — נשמר מקומית');}
+}
+
+async function loadNow(){
+    if(!accessToken){alert('אנא התחבר תחילה ל-Google Drive');return;}
+    try{
+        setSyncUI('work','טוען...');
+        const search=await fetch(
+            "https://www.googleapis.com/drive/v3/files?q=name='"+FILE_NAME+"'+and+trashed=false&spaces=drive&fields=files(id,name)",
+            {headers:{Authorization:'Bearer '+accessToken}}
+        );
+        const res=await search.json();
+        if(!res.files||!res.files.length){setSyncUI('ok','מחובר — אין נתונים שמורים עדיין');return;}
+        driveFileId=res.files[0].id;
+        const file=await fetch('https://www.googleapis.com/drive/v3/files/'+driveFileId+'?alt=media',
+            {headers:{Authorization:'Bearer '+accessToken}});
+        const data=await file.json();
+        if(data.tasks)tasks=data.tasks;
+        if(data.freeTimes)freeTimes=data.freeTimes;
+        localStorage.setItem('tasks',JSON.stringify(tasks));
+        localStorage.setItem('fts',JSON.stringify(freeTimes));
+        renderAll();
+        setSyncUI('ok','נטען מ-Google Drive ✓ '+new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}));
+    }catch(e){setSyncUI('err','שגיאה בטעינה');}
+}
+
+// ===== NAV =====
+function goPage(p){
+    document.querySelectorAll('.mobile-page').forEach(el=>el.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
+    document.getElementById('m-page-'+p).classList.add('active');
+    document.getElementById('nb-'+p).classList.add('active');
+    window.scrollTo(0,0);
+}
+
+// ===== משימות =====
+function addTask(ctx){
+    try{
+        const g=id=>document.getElementById(ctx+'-'+id);
+        const name=g('name').value.trim(),subject=g('subject').value;
+        const est=parseInt(g('time').value)||0,dueDate=g('due-date').value,dueTime=g('due-time').value;
+        const desc=g('desc').value.trim(),helpMom=g('mom').checked,helpDad=g('dad').checked;
+        const helpMsg=g('help-msg')?g('help-msg').value.trim():'';
+        if(!name||!subject||!est||!dueDate){alert('אנא מלא: שם, מקצוע, זמן ותאריך הגשה');return;}
+        const task={id:Date.now(),name,subject,estimatedTime:est,remainingTime:est,dueDate,dueTime,
+            description:desc,helpNeeded:helpMom||helpDad,helpMom,helpDad,helpMessage:helpMsg,
+            completed:false,plannedDateTime:null,sessions:[]};
+        tasks.push(task);
+        save();showSuccess(ctx);renderAll();clearForm(ctx);
+        if(ctx==='m')goPage('tasks');
+        if(helpMom||helpDad)showWA(task,ctx);
+    }catch(e){alert('שגיאה: '+e.message);}
+}
+
+function showSuccess(ctx){
+    const el=document.getElementById(ctx==='d'?'d-success':'m-success');
+    if(!el)return;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+function clearForm(ctx){
+    const g=id=>document.getElementById(ctx+'-'+id);
+    ['name','subject','time','due-date','due-time','desc'].forEach(f=>{if(g(f))g(f).value='';});
+    if(g('mom'))g('mom').checked=false;if(g('dad'))g('dad').checked=false;if(g('alone'))g('alone').checked=true;
+    if(g('help-msg'))g('help-msg').value='';
+    const hd=document.getElementById(ctx+'-help-div');if(hd)hd.style.display='none';
+}
+
+function deleteTask(id){if(confirm('למחוק?')){tasks=tasks.filter(t=>t.id!==id);save();renderAll();}}
+
+function toggleDone(id){
+    const t=tasks.find(t=>t.id===id);if(!t)return;
+    t.completed=!t.completed;
+    if(t.completed)t.remainingTime=0;
+    else t.remainingTime=t.estimatedTime-(t.sessions||[]).reduce((s,se)=>s+se.duration,0);
+    save();renderAll();
+}
+
+// ===== WhatsApp =====
+function showWA(task,ctx){
+    const parent=task.helpMom?'אמא':'אבא';
+    let msg='שלום '+parent+',\n\nאני צריכה עזרה! 🙏\n\n📌 '+task.name+'\n📘 '+task.subject+'\n⏰ '+task.estimatedTime+' דקות\n📅 הגשה: '+task.dueDate;
+    if(task.dueTime)msg+=' בשעה '+task.dueTime;
+    if(task.description)msg+='\n\n📝 '+task.description;
+    if(task.helpMessage)msg+='\n\n💬 '+task.helpMessage;
+    msg+='\n\nתודה! ❤️';
+    const enc=btoa(unescape(encodeURIComponent(msg)));
+    const div=document.createElement('div');
+    div.className='wa-preview';
+    div.innerHTML='<strong>📱 הודעה ל-WhatsApp:</strong><div class="wa-message-box">'+msg+'</div>'+
+        '<button class="btn-whatsapp" onclick="copyWA(\''+enc+'\',this)">📋 העתק הודעה</button>';
+    const list=document.getElementById(ctx==='d'?'d-tasks':'m-tasks');
+    if(list)list.insertBefore(div,list.firstChild);
+}
+
+function copyWA(enc,btn){
+    const text=decodeURIComponent(escape(atob(enc)));
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(()=>{
+            btn.textContent='✓ הועתק!';setTimeout(()=>btn.textContent='📋 העתק הודעה',2500);
+        }).catch(()=>fallbackCopy(text,btn));
+    }else{fallbackCopy(text,btn);}
+}
+
+function fallbackCopy(text,btn){
+    const ta=document.createElement('textarea');
+    ta.value=text;ta.setAttribute('readonly','');
+    ta.style.cssText='position:fixed;top:0;left:0;width:2px;height:2px;opacity:0;';
+    document.body.appendChild(ta);ta.focus();ta.select();
+    try{
+        document.execCommand('copy');
+        btn.textContent='✓ הועתק!';setTimeout(()=>btn.textContent='📋 העתק הודעה',2500);
+    }catch(e){alert('לא ניתן להעתיק אוטומטית.\n\nהודעה:\n\n'+text);}
+    document.body.removeChild(ta);
+}
+
+// ===== שעות פנויות =====
+function addFreeTime(ctx){
+    try{
+        const g=id=>document.getElementById(ctx+'-'+id);
+        const day=g('free-day').value,time=g('free-time').value,dur=parseInt(g('free-dur').value)||0;
+        const type=document.querySelector('input[name="'+ctx+'-ftype"]:checked').value;
+        const odate=g('onetime-date')?g('onetime-date').value:'';
+        if(!day||!time||!dur){alert('אנא מלא יום, שעה ומשך');return;}
+        if(type==='oneTime'&&!odate){alert('אנא בחר תאריך');return;}
+        freeTimes.push({id:Date.now(),day,time,duration:dur,type,oneTimeDate:type==='oneTime'?odate:null});
+        save();renderFreeLists();renderCalendar();
+        g('free-day').value='';g('free-time').value='';g('free-dur').value='';
+        if(g('onetime-date'))g('onetime-date').value='';
+    }catch(e){alert('שגיאה: '+e.message);}
+}
+
+function deleteFT(id){freeTimes=freeTimes.filter(f=>f.id!==id);save();renderFreeLists();renderCalendar();}
+
+function renderFreeLists(){
+    ['d','m'].forEach(ctx=>{
+        const el=document.getElementById(ctx+'-free-list');if(!el)return;
+        if(!freeTimes.length){el.innerHTML='';return;}
+        el.innerHTML='<div style="margin-top:12px;font-weight:600;margin-bottom:6px;">🕐 השעות הפנויות שלי:</div>'+
+            freeTimes.map(ft=>'<div class="slot-item '+(ft.type==='recurring'?'recurring':'')+'">'+
+                '<div class="slot-info">'+(ft.type==='recurring'?'<span class="badge-recurring">חוזר</span>':'')+
+                '<strong>יום '+DAYS[parseInt(ft.day)]+'</strong>'+(ft.oneTimeDate?' ('+ft.oneTimeDate+')':'')+
+                '<br>'+ft.time+' - '+addMins(ft.time,ft.duration)+' ('+ft.duration+' דק\')</div>'+
+                '<button class="btn btn-danger" onclick="deleteFT('+ft.id+')">🗑️</button></div>'
+            ).join('');
+    });
+}
+
+function addMins(t,m){const[h,mn]=t.split(':').map(Number),tot=h*60+mn+m;return String(Math.floor(tot/60)%24).padStart(2,'0')+':'+String(tot%60).padStart(2,'0');}
+
+// ===== יומן =====
+function getHours(){
+    const hrs=new Set();
+    freeTimes.forEach(ft=>{hrs.add(parseInt(ft.time.split(':')[0]));});
+    tasks.forEach(t=>{
+        (t.sessions||[]).forEach(s=>{if(s.dateTime)hrs.add(new Date(s.dateTime).getHours());});
+        if(t.plannedDateTime&&!(t.sessions&&t.sessions.length))hrs.add(new Date(t.plannedDateTime).getHours());
+        if(t.dueDate&&t.dueTime)hrs.add(new Date(t.dueDate+'T'+t.dueTime).getHours());
+    });
+    if(!hrs.size)for(let i=7;i<=21;i++)hrs.add(i);
+    const arr=[...hrs];arr.forEach(h=>{if(h>0)hrs.add(h-1);if(h<23)hrs.add(h+1);});
+    return[...hrs].sort((a,b)=>a-b);
+}
+
+function getCellEvents(dayIdx,hour){
+    const cd=new Date(weekStart);cd.setDate(cd.getDate()+dayIdx);cd.setHours(hour,0,0,0);
+    const evs=[];
+    freeTimes.forEach(ft=>{
+        if(parseInt(ft.time.split(':')[0])!==hour)return;
+        let m=ft.type==='recurring'&&parseInt(ft.day)===dayIdx;
+        if(!m&&ft.type==='oneTime')m=ft.oneTimeDate===cd.toISOString().split('T')[0];
+        if(m)evs.push({type:'free-time',text:'🕐 '+ft.duration+'\' פנוי'});
+    });
+    tasks.forEach(t=>{
+        const ss=t.sessions&&t.sessions.length?t.sessions:(t.plannedDateTime?[{dateTime:t.plannedDateTime,duration:t.estimatedTime}]:[]);
+        ss.forEach(s=>{
+            if(!s.dateTime)return;
+            const p=new Date(s.dateTime);
+            if(p.getDate()===cd.getDate()&&p.getMonth()===cd.getMonth()&&p.getFullYear()===cd.getFullYear()&&p.getHours()===hour)
+                evs.push({type:'planned',text:'📝 '+t.name+(t.sessions&&t.sessions.length>1?' ('+s.duration+'\')'  :'')});
+        });
+        if(t.dueDate&&!t.completed){
+            const d=new Date(t.dueDate+'T'+(t.dueTime||'00:00'));
+            if(d.getDate()===cd.getDate()&&d.getMonth()===cd.getMonth()&&d.getFullYear()===cd.getFullYear()&&d.getHours()===hour)
+                evs.push({type:'deadline',text:'⚠️ הגשה: '+t.name});
+        }
+    });
+    return evs;
+}
+
+function renderCalendar(){
+    const we=new Date(weekStart);we.setDate(we.getDate()+6);
+    const lbl=weekStart.toLocaleDateString('he-IL',{day:'numeric',month:'long'})+' — '+we.toLocaleDateString('he-IL',{day:'numeric',month:'long',year:'numeric'});
+    ['d-week-label','m-week-label'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=lbl;});
+    renderDesktopCal();renderMobileCal();
+}
+
+function renderDesktopCal(){
+    const table=document.getElementById('d-cal');if(!table)return;
+    const hours=getHours();
+    let html='<thead><tr><th class="time-col">שעה</th>';
+    for(let i=0;i<7;i++){const d=new Date(weekStart);d.setDate(d.getDate()+i);html+='<th>'+DAYS[i]+'<br><small>'+d.getDate()+'/'+(d.getMonth()+1)+'</small></th>';}
+    html+='</tr></thead><tbody>';
+    hours.forEach(h=>{
+        html+='<tr><td class="time-cell">'+String(h).padStart(2,'0')+':00</td>';
+        for(let d=0;d<7;d++){
+            const evs=getCellEvents(d,h);
+            html+='<td class="day-cell'+(evs.length?' has-event':'')+'">'+evs.map(e=>'<div class="cal-event '+e.type+'">'+e.text+'</div>').join('')+'</td>';
+        }
+        html+='</tr>';
+    });
+    table.innerHTML=html+'</tbody>';
+}
+
+function renderMobileCal(){
+    const d=new Date(weekStart);d.setDate(d.getDate()+mobileDay);
+    const lbl=document.getElementById('m-day-label');if(lbl)lbl.textContent=DAYS[mobileDay]+', '+d.getDate()+'/'+(d.getMonth()+1);
+    const body=document.getElementById('m-day-body');if(!body)return;
+    const hours=getHours();
+    body.innerHTML=hours.map(h=>{
+        const evs=getCellEvents(mobileDay,h);
+        return'<div class="hour-row"><div class="hour-label">'+String(h).padStart(2,'0')+':00</div>'+
+            '<div class="hour-events">'+evs.map(e=>'<div class="cal-event '+e.type+'">'+e.text+'</div>').join('')+'</div></div>';
+    }).join('')||'<div class="empty-msg">אין אירועים ביום זה</div>';
+}
+
+function changeWeek(dir){weekStart.setDate(weekStart.getDate()+dir*7);renderCalendar();}
+function changeMobileDay(dir){mobileDay=(mobileDay+dir+7)%7;renderMobileCal();}
+
+// ===== רינדור משימות =====
+function renderTasks(){
+    ['d','m'].forEach(ctx=>{
+        const el=document.getElementById(ctx+'-tasks');if(!el)return;
+        if(!tasks.length){el.innerHTML='<div class="empty-msg">אין משימות. הוסף משימה ראשונה!</div>';return;}
+        el.innerHTML=tasks.map(t=>{
+            const due=t.dueTime?t.dueDate+' '+t.dueTime:t.dueDate;
+            const remaining=t.remainingTime!==undefined?t.remainingTime:t.estimatedTime;
+            const isPartial=remaining>0&&remaining<t.estimatedTime&&!t.completed;
+            const hasPlanned=(t.sessions&&t.sessions.length>0)||t.plannedDateTime;
+            const days=Math.ceil((new Date(t.dueDate)-new Date())/86400000);
+            let h='<div class="task-card'+(t.completed?' done':isPartial?' partial':hasPlanned?' planned':'')+'">'+
+                '<div class="task-card-header"><div>'+
+                '<span class="task-name'+(t.completed?' done-text':'')+'">'+t.name+'</span><br>'+
+                '<span class="badge badge-subject">'+t.subject+'</span>';
+            if(hasPlanned&&!isPartial)h+='<span class="badge badge-planned">✓ מתוכנן</span>';
+            if(isPartial)h+='<span class="badge badge-partial">⏳ '+remaining+' דק\' נשאר</span>';
+            if(days<=1&&!t.completed)h+='<span class="badge badge-urgent">🔴 דחוף!</span>';
+            h+='</div><button class="btn btn-danger" onclick="deleteTask('+t.id+')">🗑️</button></div>'+
+                '<div class="task-meta">⏰ '+t.estimatedTime+' דק\'+(isPartial?' | ⏳ נשאר '+remaining+' דק\'':'')+' | 📅 '+due+'</div>';
+            if(t.description)h+='<div class="task-meta">📝 '+t.description+'</div>';
+            if(t.helpNeeded)h+='<div class="task-help">🤝 עזרה מ'+(t.helpMom?'אמא':'')+(t.helpMom&&t.helpDad?' ו':'')+(t.helpDad?'אבא':'')+(t.helpMessage?' — '+t.helpMessage:'')+'</div>';
+            const allS=t.sessions&&t.sessions.length?t.sessions:(t.plannedDateTime?[{dateTime:t.plannedDateTime,duration:t.estimatedTime}]:[]);
+            allS.forEach((s,i)=>{
+                if(!s.dateTime)return;
+                const sd=new Date(s.dateTime);
+                h+='<div class="task-planned-info">✅'+(allS.length>1?' חלק '+(i+1)+':':'')+' '+sd.toLocaleDateString('he-IL',{weekday:'short',day:'numeric',month:'numeric'})+' '+sd.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})+(allS.length>1?' ('+s.duration+' דק\')':'')+'</div>';
+            });
+            if(isPartial)h+='<div class="task-partial-info">⏳ נשאר '+remaining+' דקות — לחץ "הוסף זמן"</div>';
+            h+='<div class="task-actions"><label class="task-done-check"><input type="checkbox"'+(t.completed?' checked':'')+' onchange="toggleDone('+t.id+')"> הושלמה</label>';
+            if(!t.completed)h+='<button class="btn btn-success" onclick="openPlan('+t.id+')">📅 '+(isPartial?'הוסף זמן':hasPlanned?'שנה':'תכנן')+'</button>';
+            allS.forEach((s,i)=>{
+                if(!s.dateTime)return;
+                const sd=new Date(s.dateTime),ed=new Date(sd.getTime()+s.duration*60000);
+                const fmt=d=>d.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+                const title=allS.length>1?t.name+' (חלק '+(i+1)+') - '+t.subject:t.name+' - '+t.subject;
+                const details=encodeURIComponent([t.description,t.helpMessage?'עזרה: '+t.helpMessage:''].filter(Boolean).join('\n'));
+                h+='<a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(title)+'&details='+details+'&dates='+fmt(sd)+'/'+fmt(ed)+'" target="_blank" class="btn-google">📅'+(allS.length>1?' '+(i+1):'')+'</a>';
+            });
+            if(t.helpNeeded)h+='<button class="btn-whatsapp" onclick="showWA(tasks.find(x=>x.id==='+t.id+'),\''+ctx+'\')">💬 WhatsApp</button>';
+            h+='</div></div>';
+            return h;
+        }).join('');
+    });
+    updateStats();
+}
+
+function updateStats(){
+    const tot=tasks.length,pend=tasks.filter(t=>!t.completed).length;
+    const hrs=(tasks.filter(t=>!t.completed).reduce((s,t)=>s+(t.remainingTime!==undefined?t.remainingTime:t.estimatedTime),0)/60).toFixed(1);
+    ['d','m'].forEach(p=>{
+        const a=document.getElementById(p+'-total'),b=document.getElementById(p+'-pending'),c=document.getElementById(p+'-hours');
+        if(a)a.textContent=tot;if(b)b.textContent=pend;if(c)c.textContent=hrs;
+    });
+}
+
+function renderSchedule(){
+    ['d','m'].forEach(ctx=>{
+        const el=document.getElementById(ctx+'-schedule');if(!el)return;
+        const pending=tasks.filter(t=>!t.completed).sort((a,b)=>new Date(a.dueDate+'T'+(a.dueTime||'23:59'))-new Date(b.dueDate+'T'+(b.dueTime||'23:59')));
+        if(!pending.length){el.innerHTML='<p class="empty-msg">אין משימות ממתינות 🎉</p>';return;}
+        el.innerHTML=pending.map((t,i)=>{
+            const days=Math.ceil((new Date(t.dueDate)-new Date())/86400000);
+            const urg=days<=1?'🔴 דחוף!':days<=3?'🟡 בקרוב':'🟢 יש זמן';
+            const remaining=t.remainingTime!==undefined?t.remainingTime:t.estimatedTime;
+            const allS=t.sessions&&t.sessions.length?t.sessions:(t.plannedDateTime?[{dateTime:t.plannedDateTime,duration:t.estimatedTime}]:[]);
+            let h='<div class="schedule-card"><div class="schedule-card-title">'+(i+1)+'. '+t.name+' '+urg+'</div>'+
+                '<div class="schedule-card-meta">📘 '+t.subject+' | ⏱️ '+remaining+' דק\' | 📅 '+t.dueDate+(days>=0?' | ⏳ '+days+' ימים':'');
+            allS.forEach((s,si)=>{if(!s.dateTime)return;const p=new Date(s.dateTime);h+='<br>✅'+(allS.length>1?' חלק '+(si+1)+':':'')+' '+p.toLocaleDateString('he-IL',{weekday:'short',day:'numeric',month:'numeric'})+' '+p.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});});
+            return h+'</div></div>';
+        }).join('');
+    });
+}
+
+// ===== תכנון =====
+function openPlan(id){
+    planTaskId=id;selSlot=null;
+    const task=tasks.find(t=>t.id===id);if(!task)return;
+    const remaining=task.remainingTime!==undefined?task.remainingTime:task.estimatedTime;
+    document.getElementById('plan-task-info').innerHTML=
+        '<div style="background:#f0f4ff;padding:12px;border-radius:8px;margin-bottom:14px;">'+
+        '<strong style="color:#667eea;">'+task.name+'</strong><br>'+
+        '<small>'+task.subject+' | נשאר: <strong>'+remaining+' דק\'</strong> | הגשה: '+task.dueDate+'</small></div>'+
+        '<div style="font-weight:600;margin-bottom:10px;">בחר זמן פנוי:</div>';
+    const slots=findSlots(task);
+    const sd=document.getElementById('plan-slots');
+    if(!slots.length){sd.innerHTML='<p style="color:#f44336;text-align:center;padding:15px;">😔 אין זמנים פנויים. הוסף שעות פנויות!</p>';return;}
+    sd.innerHTML=slots.map((s,i)=>{
+        const d=new Date(s.dt),isShort=s.dur<remaining;
+        return'<div class="slot-option'+(isShort?' short':'')+'" onclick="selSlotFn('+i+',\''+s.dt+'\','+s.dur+','+isShort+')">'+
+            '<strong>'+d.toLocaleDateString('he-IL',{weekday:'long',day:'numeric',month:'numeric'})+'</strong>'+(isShort?' <small style="color:#e65100;">(חלקי)</small>':'')+
+            '<br><span style="color:#667eea;">⏰ '+d.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})+' - '+s.end+'</span>'+
+            ' <span style="background:'+(isShort?'#fff3e0':'#e8f5e9')+';padding:2px 8px;border-radius:5px;font-size:12px;">'+s.dur+' דק\' פנוי</span>'+
+            (isShort?'<br><small style="color:#e65100;">יש זמן ל-'+s.dur+' מתוך '+remaining+' דקות נדרשות</small>':'')+
+            '</div>';
+    }).join('');
+    document.getElementById('plan-modal').style.display='block';
+}
+
+function selSlotFn(i,dt,dur,isShort){
+    selSlot={dt,dur,isShort};
+    document.querySelectorAll('.slot-option').forEach((el,idx)=>el.classList.toggle('selected',idx===i));
+}
+
+function closePlan(){document.getElementById('plan-modal').style.display='none';selSlot=null;planTaskId=null;}
+
+function confirmPlan(){
+    if(!selSlot||!planTaskId){alert('אנא בחר זמן');return;}
+    const task=tasks.find(t=>t.id===planTaskId);if(!task)return;
+    const remaining=task.remainingTime!==undefined?task.remainingTime:task.estimatedTime;
+    if(selSlot.isShort){closePlan();openPartialModal(task,selSlot.dt,selSlot.dur,remaining);}
+    else{
+        if(!task.sessions)task.sessions=[];
+        task.sessions.push({dateTime:selSlot.dt,duration:remaining});
+        task.plannedDateTime=selSlot.dt;task.remainingTime=0;
+        save();renderAll();closePlan();
+    }
+}
+
+function openPartialModal(task,dt,availDur,remaining){
+    partialTaskId=task.id;partialSlot={dt,availDur};
+    document.getElementById('partial-info').innerHTML=
+        '<div style="background:#fff8f0;padding:12px;border-radius:8px;margin-bottom:10px;border:2px solid #ff9800;">'+
+        '<strong style="color:#e65100;">'+task.name+'</strong><br>'+
+        '<small>זמן פנוי: <strong>'+availDur+' דקות</strong> | נדרש: <strong>'+remaining+' דקות</strong></small></div>';
+    const input=document.getElementById('partial-minutes');
+    input.value=availDur;input.max=availDur;
+    document.getElementById('partial-hint').textContent='מקסימום '+availDur+' דקות. השאר יתוכנן בנפרד.';
+    document.getElementById('partial-modal').style.display='block';
+}
+
+function closePartial(){document.getElementById('partial-modal').style.display='none';partialTaskId=null;partialSlot=null;}
+
+function confirmPartial(){
+    const mins=parseInt(document.getElementById('partial-minutes').value)||0;
+    const task=tasks.find(t=>t.id===partialTaskId);if(!task){closePartial();return;}
+    if(mins<=0||mins>partialSlot.availDur){alert('אנא הזן מספר דקות תקין (עד '+partialSlot.availDur+')');return;}
+    const remaining=task.remainingTime!==undefined?task.remainingTime:task.estimatedTime;
+    if(!task.sessions)task.sessions=[];
+    task.sessions.push({dateTime:partialSlot.dt,duration:mins});
+    task.plannedDateTime=partialSlot.dt;
+    task.remainingTime=Math.max(0,remaining-mins);
+    save();renderAll();closePartial();
+    if(task.remainingTime>0)alert('✅ תוכנן '+mins+' דקות!\n\nנשאר עוד '+task.remainingTime+' דקות.\nלחץ "הוסף זמן" לתכנון ההמשך.');
+}
+
+function findSlots(task){
+    const slots=[],remaining=task.remainingTime!==undefined?task.remainingTime:task.estimatedTime;
+    const due=new Date(task.dueDate+'T'+(task.dueTime||'23:59'));
+    for(let off=0;off<14;off++){
+        const day=new Date();day.setDate(day.getDate()+off);day.setHours(0,0,0,0);
+        if(day>due)break;
+        const dow=day.getDay();
+        freeTimes.forEach(ft=>{
+            let match=ft.type==='recurring'&&parseInt(ft.day)===dow;
+            if(!match&&ft.type==='oneTime')match=ft.oneTimeDate===day.toISOString().split('T')[0];
+            if(!match)return;
+            const[h,m]=ft.time.split(':');
+            const start=new Date(day);start.setHours(parseInt(h),parseInt(m),0,0);
+            const occ=tasks.some(t=>{
+                if(t.id===task.id)return false;
+                const allS=t.sessions&&t.sessions.length?t.sessions:(t.plannedDateTime?[{dateTime:t.plannedDateTime,duration:t.estimatedTime}]:[]);
+                return allS.some(s=>{
+                    if(!s.dateTime)return false;
+                    const ps=new Date(s.dateTime),pe=new Date(ps.getTime()+s.duration*60000);
+                    const se=new Date(start.getTime()+Math.min(ft.duration,remaining)*60000);
+                    return start<pe&&se>ps;
+                });
+            });
+            if(!occ){
+                const end=new Date(start.getTime()+Math.min(ft.duration,remaining)*60000);
+                slots.push({dt:start.toISOString().slice(0,16),end:end.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}),dur:ft.duration});
+            }
+        });
+    }
+    return slots.sort((a,b)=>new Date(a.dt)-new Date(b.dt)).slice(0,12);
+}
+
+function exportAllCal(){
+    const planned=tasks.filter(t=>(t.sessions&&t.sessions.length)||t.plannedDateTime);
+    if(!planned.length){alert('אין משימות מתוכננות לייצוא');return;}
+    let count=0;
+    planned.forEach(t=>{
+        const allS=t.sessions&&t.sessions.length?t.sessions:[{dateTime:t.plannedDateTime,duration:t.estimatedTime}];
+        allS.forEach((s,i)=>{
+            if(!s.dateTime)return;
+            setTimeout(()=>{
+                const sd=new Date(s.dateTime),ed=new Date(sd.getTime()+s.duration*60000);
+                const fmt=d=>d.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+                const title=allS.length>1?t.name+' (חלק '+(i+1)+') - '+t.subject:t.name+' - '+t.subject;
+                const details=encodeURIComponent([t.description,t.helpMessage?'עזרה: '+t.helpMessage:''].filter(Boolean).join('\n'));
+                window.open('https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(title)+'&details='+details+'&dates='+fmt(sd)+'/'+fmt(ed),'_blank');
+            },count*600);
+            count++;
+        });
+    });
+}
+
+function renderAll(){renderTasks();renderFreeLists();renderCalendar();renderSchedule();}
+
+window.onclick=e=>{
+    if(e.target===document.getElementById('plan-modal'))closePlan();
+    if(e.target===document.getElementById('partial-modal'))closePartial();
+};
+
+document.addEventListener('DOMContentLoaded',()=>{
+    load();renderAll();
+    ['d','m'].forEach(ctx=>{
+        ['mom','dad','alone'].forEach(id=>{
+            const el=document.getElementById(ctx+'-'+id);if(!el)return;
+            el.addEventListener('change',()=>{
+                const needs=document.getElementById(ctx+'-mom').checked||document.getElementById(ctx+'-dad').checked;
+                document.getElementById(ctx+'-alone').checked=!needs;
+                document.getElementById(ctx+'-help-div').style.display=needs?'block':'none';
+            });
+        });
+        document.querySelectorAll('input[name="'+ctx+'-ftype"]').forEach(r=>{
+            r.addEventListener('change',function(){
+                const div=document.getElementById(ctx+'-onetime-div');
+                if(div)div.style.display=this.value==='oneTime'?'block':'none';
+            });
+        });
+    });
+    const pi=document.getElementById('partial-minutes');
+    if(pi)pi.addEventListener('input',function(){
+        if(!partialSlot)return;
+        const t=tasks.find(t=>t.id===partialTaskId);
+        const rem=t?t.remainingTime||t.estimatedTime:0;
+        document.getElementById('partial-hint').textContent='יבוצע: '+(this.value||0)+' דק\' | יישאר: '+Math.max(0,rem-parseInt(this.value||0))+' דק\'';
+    });
+});
+</script>
+</body>
+</html>
