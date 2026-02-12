@@ -379,606 +379,546 @@
 </div>
 <script src="https://accounts.google.com/gsi/client" async></script>
 <script>
-var CLIENT_ID = '691427751503-ut47ai714s9a0u0o96d3r66i5pgl95nj.apps.googleusercontent.com';
-var SCOPES = 'https://www.googleapis.com/auth/drive.file';
-var FILE_NAME = 'task_manager_data.json';
-var tasks = [], freeTimes = [];
-var weekStart = new Date();
-weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+var CLIENT_ID="691427751503-ut47ai714s9a0u0o96d3r66i5pgl95nj.apps.googleusercontent.com";
+var SCOPES="https://www.googleapis.com/auth/drive.file";
+var FILE_NAME="task_manager_data.json";
+var tasks=[],freeTimes=[];
+var weekStart=new Date();
+weekStart.setDate(weekStart.getDate()-weekStart.getDay());
 weekStart.setHours(0,0,0,0);
-var mobileDay = new Date().getDay();
-var selSlot = null, planTaskId = null, partialTaskId = null, partialSlot = null;
-var tokenClient = null, accessToken = null, driveFileId = null, autoSaveTimer = null;
-var DAYS = ['\u05e8\u05d0\u05e9\u05d5\u05df','\u05e9\u05e0\u05d9','\u05e9\u05dc\u05d9\u05e9\u05d9','\u05e8\u05d1\u05d9\u05e2\u05d9','\u05d7\u05de\u05d9\u05e9\u05d9','\u05e9\u05d9\u05e9\u05d9','\u05e9\u05d1\u05ea'];
+var mobileDay=new Date().getDay();
+var selSlot=null,planTaskId=null,partialTaskId=null,partialSlot=null;
+var tokenClient=null,accessToken=null,driveFileId=null,autoSaveTimer=null;
+var DAYS=["\u05e8\u05d0\u05e9\u05d5\u05df","\u05e9\u05e0\u05d9","\u05e9\u05dc\u05d9\u05e9\u05d9","\u05e8\u05d1\u05d9\u05e2\u05d9","\u05d7\u05de\u05d9\u05e9\u05d9","\u05e9\u05d9\u05e9\u05d9","\u05e9\u05d1\u05ea"];
 
-function save() {
-    try {
-        localStorage.setItem('tasks', JSON.stringify(tasks));
-        localStorage.setItem('fts', JSON.stringify(freeTimes));
-        scheduleAutoSave();
-    } catch(e) {}
+function save(){
+  try{localStorage.setItem("tasks",JSON.stringify(tasks));localStorage.setItem("fts",JSON.stringify(freeTimes));scheduleAutoSave();}catch(e){}
 }
-
-function load() {
-    try {
-        var t = localStorage.getItem('tasks');
-        var f = localStorage.getItem('fts');
-        if (t) tasks = JSON.parse(t);
-        if (f) freeTimes = JSON.parse(f);
-    } catch(e) {}
+function load(){
+  try{var t=localStorage.getItem("tasks");var f=localStorage.getItem("fts");if(t)tasks=JSON.parse(t);if(f)freeTimes=JSON.parse(f);}catch(e){}
 }
-
-function setSyncUI(state, text) {
-    var dot = document.getElementById('sync-dot');
-    var txt = document.getElementById('sync-text');
-    if (dot) dot.className = 'sync-dot ' + (state==='ok'?'synced':state==='work'?'pending':state==='err'?'error':'');
-    if (txt) txt.textContent = text;
+function setSyncUI(state,text){
+  var dot=document.getElementById("sync-dot");
+  var txt=document.getElementById("sync-text");
+  if(dot)dot.className="sync-dot "+(state==="ok"?"synced":state==="work"?"pending":state==="err"?"error":"");
+  if(txt)txt.textContent=text;
 }
-
-function signIn() {
-    if (!window.google) { alert('\u05d8\u05d5\u05e2\u05df Google... \u05e0\u05e1\u05d4 \u05e9\u05d5\u05d1 \u05d1\u05e2\u05d5\u05d3 \u05e9\u05e0\u05d9\u05d9\u05d4.'); return; }
-    tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPES,
-        callback: function(resp) {
-            if (resp.error) { setSyncUI('err', resp.error); return; }
-            accessToken = resp.access_token;
-            document.getElementById('btn-signin').style.display = 'none';
-            document.getElementById('btn-save').style.display = 'inline-flex';
-            document.getElementById('btn-load').style.display = 'inline-flex';
-            document.getElementById('btn-signout').style.display = 'inline-flex';
-            setSyncUI('ok', '\u05de\u05d7\u05d5\u05d1\u05e8 \u05dc-Google Drive');
-            loadNow();
-        }
-    });
-    tokenClient.requestAccessToken();
-}
-
-function signOut() {
-    if (accessToken) google.accounts.oauth2.revoke(accessToken);
-    accessToken = null; driveFileId = null;
-    document.getElementById('btn-signin').style.display = 'inline-flex';
-    document.getElementById('btn-save').style.display = 'none';
-    document.getElementById('btn-load').style.display = 'none';
-    document.getElementById('btn-signout').style.display = 'none';
-    setSyncUI('', '');
-}
-
-function scheduleAutoSave() {
-    if (!accessToken) return;
-    clearTimeout(autoSaveTimer);
-    autoSaveTimer = setTimeout(saveNow, 3000);
-}
-
-function saveNow() {
-    if (!accessToken) return;
-    setSyncUI('work', '\u05e9\u05d5\u05de\u05e8...');
-    var data = JSON.stringify({tasks: tasks, freeTimes: freeTimes});
-    var searchUrl = "https://www.googleapis.com/drive/v3/files?q=name%3D'" + FILE_NAME + "'+and+trashed%3Dfalse&spaces=drive&fields=files(id)";
-    fetch(searchUrl, {headers:{Authorization:'Bearer '+accessToken}})
-    .then(function(r){return r.json();})
-    .then(function(res){
-        if (res.files && res.files.length > 0) {
-            driveFileId = res.files[0].id;
-            return fetch('https://www.googleapis.com/upload/drive/v3/files/'+driveFileId+'?uploadType=media',
-                {method:'PATCH', headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'}, body:data});
-        } else {
-            var form = new FormData();
-            form.append('metadata', new Blob([JSON.stringify({name:FILE_NAME,mimeType:'application/json'})],{type:'application/json'}));
-            form.append('file', new Blob([data],{type:'application/json'}));
-            return fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',
-                {method:'POST', headers:{Authorization:'Bearer '+accessToken}, body:form})
-            .then(function(r){return r.json();})
-            .then(function(j){driveFileId=j.id;});
-        }
-    })
-    .then(function(){
-        var t = new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
-        setSyncUI('ok', '\u05e0\u05e9\u05de\u05e8 ' + t);
-    })
-    .catch(function(){setSyncUI('err','\u05e9\u05d2\u05d9\u05d0\u05d4');});
-}
-
-function loadNow() {
-    if (!accessToken) return;
-    setSyncUI('work', '\u05d8\u05d5\u05e2\u05df...');
-    var searchUrl = "https://www.googleapis.com/drive/v3/files?q=name%3D'" + FILE_NAME + "'+and+trashed%3Dfalse&spaces=drive&fields=files(id)";
-    fetch(searchUrl, {headers:{Authorization:'Bearer '+accessToken}})
-    .then(function(r){return r.json();})
-    .then(function(res){
-        if (!res.files || !res.files.length) { setSyncUI('ok','\u05de\u05d7\u05d5\u05d1\u05e8'); return; }
-        driveFileId = res.files[0].id;
-        return fetch('https://www.googleapis.com/drive/v3/files/'+driveFileId+'?alt=media',
-            {headers:{Authorization:'Bearer '+accessToken}})
-        .then(function(r){return r.json();})
-        .then(function(d){
-            if (d.tasks) tasks = d.tasks;
-            if (d.freeTimes) freeTimes = d.freeTimes;
-            localStorage.setItem('tasks',JSON.stringify(tasks));
-            localStorage.setItem('fts',JSON.stringify(freeTimes));
-            renderAll();
-            var t = new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
-            setSyncUI('ok','\u05e0\u05d8\u05e2\u05df ' + t);
-        });
-    })
-    .catch(function(){setSyncUI('err','\u05e9\u05d2\u05d9\u05d0\u05d4');});
-}
-
-function goPage(p) {
-    document.querySelectorAll('.mobile-page').forEach(function(el){el.classList.remove('active');});
-    document.querySelectorAll('.nav-btn').forEach(function(el){el.classList.remove('active');});
-    document.getElementById('m-page-'+p).classList.add('active');
-    document.getElementById('nb-'+p).classList.add('active');
-    window.scrollTo(0,0);
-}
-
-function addTask(ctx) {
-    try {
-        var name = document.getElementById(ctx+'-name').value.trim();
-        var subject = document.getElementById(ctx+'-subject').value;
-        var est = parseInt(document.getElementById(ctx+'-time').value) || 0;
-        var dueDate = document.getElementById(ctx+'-due-date').value;
-        var dueTime = document.getElementById(ctx+'-due-time').value;
-        var desc = document.getElementById(ctx+'-desc').value.trim();
-        var helpMom = document.getElementById(ctx+'-mom').checked;
-        var helpDad = document.getElementById(ctx+'-dad').checked;
-        var helpMsgEl = document.getElementById(ctx+'-help-msg');
-        var helpMsg = helpMsgEl ? helpMsgEl.value.trim() : '';
-        if (!name||!subject||!est||!dueDate) { alert('Please fill all fields'); return; }
-        var task = {id:Date.now(), name:name, subject:subject, estimatedTime:est, remainingTime:est,
-            dueDate:dueDate, dueTime:dueTime, description:desc,
-            helpNeeded:helpMom||helpDad, helpMom:helpMom, helpDad:helpDad, helpMessage:helpMsg,
-            completed:false, plannedDateTime:null, sessions:[]};
-        tasks.push(task);
-        save(); showSuccess(ctx); renderAll(); clearForm(ctx);
-        if (ctx==='m') goPage('tasks');
-        if (helpMom||helpDad) showWA(task, ctx);
-    } catch(e) { alert(e.message); }
-}
-
-function showSuccess(ctx) {
-    var el = document.getElementById(ctx==='d'?'d-success':'m-success');
-    if (!el) return;
-    el.classList.add('show');
-    setTimeout(function(){el.classList.remove('show');}, 3000);
-}
-
-function clearForm(ctx) {
-    ['name','subject','time','due-date','due-time','desc'].forEach(function(f){
-        var el = document.getElementById(ctx+'-'+f);
-        if (el) el.value = '';
-    });
-    var mom=document.getElementById(ctx+'-mom'); if(mom)mom.checked=false;
-    var dad=document.getElementById(ctx+'-dad'); if(dad)dad.checked=false;
-    var alone=document.getElementById(ctx+'-alone'); if(alone)alone.checked=true;
-    var hm=document.getElementById(ctx+'-help-msg'); if(hm)hm.value='';
-    var hd=document.getElementById(ctx+'-help-div'); if(hd)hd.style.display='none';
-}
-
-function deleteTask(id) {
-    if (confirm('?')) {
-        tasks = tasks.filter(function(t){return t.id!==id;});
-        save(); renderAll();
+function signIn(){
+  if(!window.google){alert("Loading Google... try again in a second.");return;}
+  tokenClient=google.accounts.oauth2.initTokenClient({
+    client_id:CLIENT_ID,
+    scope:SCOPES,
+    callback:function(resp){
+      if(resp.error){setSyncUI("err",resp.error);return;}
+      accessToken=resp.access_token;
+      document.getElementById("btn-signin").style.display="none";
+      document.getElementById("btn-save").style.display="inline-flex";
+      document.getElementById("btn-load").style.display="inline-flex";
+      document.getElementById("btn-signout").style.display="inline-flex";
+      setSyncUI("ok","Connected to Google Drive");
+      loadNow();
     }
+  });
+  tokenClient.requestAccessToken();
 }
-
-function toggleDone(id) {
-    var t = tasks.find(function(x){return x.id===id;});
-    if (!t) return;
-    t.completed = !t.completed;
-    if (t.completed) t.remainingTime = 0;
-    else t.remainingTime = t.estimatedTime - (t.sessions||[]).reduce(function(s,se){return s+se.duration;},0);
-    save(); renderAll();
+function signOut(){
+  if(accessToken)google.accounts.oauth2.revoke(accessToken);
+  accessToken=null;driveFileId=null;
+  document.getElementById("btn-signin").style.display="inline-flex";
+  document.getElementById("btn-save").style.display="none";
+  document.getElementById("btn-load").style.display="none";
+  document.getElementById("btn-signout").style.display="none";
+  setSyncUI("","");
 }
-
-function showWA(task, ctx) {
-    var parent = task.helpMom ? DAYS[0] : DAYS[0];
-    var lines = [];
-    lines.push(task.name);
-    lines.push(task.subject);
-    lines.push(task.estimatedTime + ' min');
-    lines.push(task.dueDate);
-    if (task.dueTime) lines.push(task.dueTime);
-    if (task.description) lines.push(task.description);
-    if (task.helpMessage) lines.push(task.helpMessage);
-    var msg = lines.join('\n');
-    var div = document.createElement('div');
-    div.className = 'wa-preview';
-    var box = document.createElement('div');
-    box.className = 'wa-message-box';
-    box.textContent = msg;
-    var btn = document.createElement('button');
-    btn.className = 'btn-whatsapp';
-    btn.textContent = 'Copy';
-    btn.onclick = function(){copyWA(msg,btn);};
-    div.appendChild(box);
-    div.appendChild(btn);
-    var list = document.getElementById(ctx==='d'?'d-tasks':'m-tasks');
-    if (list) list.insertBefore(div, list.firstChild);
+function scheduleAutoSave(){
+  if(!accessToken)return;
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer=setTimeout(saveNow,3000);
 }
-
-function copyWA(text, btn) {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(function(){
-            btn.textContent = 'Copied!';
-            setTimeout(function(){btn.textContent='Copy';},2500);
-        }).catch(function(){fallbackCopy(text,btn);});
-    } else { fallbackCopy(text,btn); }
+function saveNow(){
+  if(!accessToken)return;
+  setSyncUI("work","Saving...");
+  var data=JSON.stringify({tasks:tasks,freeTimes:freeTimes});
+  var url="https://www.googleapis.com/drive/v3/files?q=name%3D%22"+FILE_NAME+"%22%2Btrashed%3Dfalse&spaces=drive&fields=files(id)";
+  fetch(url,{headers:{Authorization:"Bearer "+accessToken}})
+  .then(function(r){return r.json();})
+  .then(function(res){
+    if(res.files&&res.files.length>0){
+      driveFileId=res.files[0].id;
+      return fetch("https://www.googleapis.com/upload/drive/v3/files/"+driveFileId+"?uploadType=media",
+        {method:"PATCH",headers:{Authorization:"Bearer "+accessToken,"Content-Type":"application/json"},body:data});
+    }else{
+      var form=new FormData();
+      form.append("metadata",new Blob([JSON.stringify({name:FILE_NAME,mimeType:"application/json"})],{type:"application/json"}));
+      form.append("file",new Blob([data],{type:"application/json"}));
+      return fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id",
+        {method:"POST",headers:{Authorization:"Bearer "+accessToken},body:form})
+      .then(function(r){return r.json();})
+      .then(function(j){driveFileId=j.id;});
+    }
+  })
+  .then(function(){setSyncUI("ok","Saved "+new Date().toLocaleTimeString());})
+  .catch(function(){setSyncUI("err","Save error");});
 }
-
-function fallbackCopy(text, btn) {
-    var ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.cssText = 'position:fixed;opacity:0;';
-    document.body.appendChild(ta); ta.focus(); ta.select();
-    try { document.execCommand('copy'); btn.textContent='Copied!'; setTimeout(function(){btn.textContent='Copy';},2500); }
-    catch(e) { alert(text); }
-    document.body.removeChild(ta);
-}
-
-function addFreeTime(ctx) {
-    try {
-        var day = document.getElementById(ctx+'-free-day').value;
-        var time = document.getElementById(ctx+'-free-time').value;
-        var dur = parseInt(document.getElementById(ctx+'-free-dur').value) || 0;
-        var typeEl = document.querySelector('input[name="'+ctx+'-ftype"]:checked');
-        var type = typeEl ? typeEl.value : 'recurring';
-        var odateEl = document.getElementById(ctx+'-onetime-date');
-        var odate = odateEl ? odateEl.value : '';
-        if (!day||!time||!dur) { alert('Fill all fields'); return; }
-        if (type==='oneTime'&&!odate) { alert('Pick date'); return; }
-        freeTimes.push({id:Date.now(),day:day,time:time,duration:dur,type:type,oneTimeDate:type==='oneTime'?odate:null});
-        save(); renderFreeLists(); renderCalendar();
-        document.getElementById(ctx+'-free-day').value='';
-        document.getElementById(ctx+'-free-time').value='';
-        document.getElementById(ctx+'-free-dur').value='';
-        if(odateEl)odateEl.value='';
-    } catch(e) { alert(e.message); }
-}
-
-function deleteFT(id) {
-    freeTimes = freeTimes.filter(function(f){return f.id!==id;});
-    save(); renderFreeLists(); renderCalendar();
-}
-
-function renderFreeLists() {
-    ['d','m'].forEach(function(ctx){
-        var el = document.getElementById(ctx+'-free-list'); if (!el) return;
-        if (!freeTimes.length) { el.innerHTML=''; return; }
-        var html = '<div style="margin-top:12px;font-weight:600;margin-bottom:6px;">Free times:</div>';
-        freeTimes.forEach(function(ft){
-            html += '<div class="slot-item '+(ft.type==='recurring'?'recurring':'')+'"><div class="slot-info">';
-            html += '<strong>'+DAYS[parseInt(ft.day)]+'</strong> '+ft.time+'-'+addMins(ft.time,ft.duration)+' ('+ft.duration+' min)</div>';
-            html += '<button class="btn-danger" onclick="deleteFT('+ft.id+')">X</button></div>';
-        });
-        el.innerHTML = html;
+function loadNow(){
+  if(!accessToken)return;
+  setSyncUI("work","Loading...");
+  var url="https://www.googleapis.com/drive/v3/files?q=name%3D%22"+FILE_NAME+"%22%2Btrashed%3Dfalse&spaces=drive&fields=files(id)";
+  fetch(url,{headers:{Authorization:"Bearer "+accessToken}})
+  .then(function(r){return r.json();})
+  .then(function(res){
+    if(!res.files||!res.files.length){setSyncUI("ok","Connected - no saved data yet");return;}
+    driveFileId=res.files[0].id;
+    return fetch("https://www.googleapis.com/drive/v3/files/"+driveFileId+"?alt=media",
+      {headers:{Authorization:"Bearer "+accessToken}})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.tasks)tasks=d.tasks;
+      if(d.freeTimes)freeTimes=d.freeTimes;
+      localStorage.setItem("tasks",JSON.stringify(tasks));
+      localStorage.setItem("fts",JSON.stringify(freeTimes));
+      renderAll();
+      setSyncUI("ok","Loaded "+new Date().toLocaleTimeString());
     });
+  })
+  .catch(function(){setSyncUI("err","Load error");});
 }
-
-function addMins(t,m){
-    var p=t.split(':');
-    var tot=parseInt(p[0])*60+parseInt(p[1])+m;
-    return String(Math.floor(tot/60)%24).padStart(2,'0')+':'+String(tot%60).padStart(2,'0');
+function goPage(p){
+  document.querySelectorAll(".mobile-page").forEach(function(el){el.classList.remove("active");});
+  document.querySelectorAll(".nav-btn").forEach(function(el){el.classList.remove("active");});
+  document.getElementById("m-page-"+p).classList.add("active");
+  document.getElementById("nb-"+p).classList.add("active");
+  window.scrollTo(0,0);
 }
-
-function getHours(){
-    var hrs=new Set();
-    freeTimes.forEach(function(ft){hrs.add(parseInt(ft.time.split(':')[0]));});
-    tasks.forEach(function(t){
-        (t.sessions||[]).forEach(function(s){if(s.dateTime)hrs.add(new Date(s.dateTime).getHours());});
-        if(t.plannedDateTime&&!(t.sessions&&t.sessions.length))hrs.add(new Date(t.plannedDateTime).getHours());
-        if(t.dueDate&&t.dueTime)hrs.add(new Date(t.dueDate+'T'+t.dueTime).getHours());
-    });
-    if(!hrs.size)for(var i=7;i<=21;i++)hrs.add(i);
-    var arr=Array.from(hrs);
-    arr.forEach(function(h){if(h>0)hrs.add(h-1);if(h<23)hrs.add(h+1);});
-    return Array.from(hrs).sort(function(a,b){return a-b;});
+function addTask(ctx){
+  try{
+    var name=document.getElementById(ctx+"-name").value.trim();
+    var subject=document.getElementById(ctx+"-subject").value;
+    var est=parseInt(document.getElementById(ctx+"-time").value)||0;
+    var dueDate=document.getElementById(ctx+"-due-date").value;
+    var dueTime=document.getElementById(ctx+"-due-time").value;
+    var desc=document.getElementById(ctx+"-desc").value.trim();
+    var helpMom=document.getElementById(ctx+"-mom").checked;
+    var helpDad=document.getElementById(ctx+"-dad").checked;
+    var helpMsgEl=document.getElementById(ctx+"-help-msg");
+    var helpMsg=helpMsgEl?helpMsgEl.value.trim():"";
+    if(!name||!subject||!est||!dueDate){alert("Please fill all required fields");return;}
+    var task={id:Date.now(),name:name,subject:subject,estimatedTime:est,remainingTime:est,
+      dueDate:dueDate,dueTime:dueTime,description:desc,
+      helpNeeded:helpMom||helpDad,helpMom:helpMom,helpDad:helpDad,helpMessage:helpMsg,
+      completed:false,plannedDateTime:null,sessions:[]};
+    tasks.push(task);
+    save();showSuccess(ctx);renderAll();clearForm(ctx);
+    if(ctx==="m")goPage("tasks");
+    if(helpMom||helpDad)showWA(task,ctx);
+  }catch(e){alert(e.message);}
 }
-
-function getCellEvents(dayIdx,hour){
-    var cd=new Date(weekStart);
-    cd.setDate(cd.getDate()+dayIdx);cd.setHours(hour,0,0,0);
-    var evs=[];
-    var cdStr=cd.toISOString().split('T')[0];
+function showSuccess(ctx){
+  var el=document.getElementById(ctx==="d"?"d-success":"m-success");
+  if(!el)return;
+  el.classList.add("show");
+  setTimeout(function(){el.classList.remove("show");},3000);
+}
+function clearForm(ctx){
+  ["name","subject","time","due-date","due-time","desc"].forEach(function(f){
+    var el=document.getElementById(ctx+"-"+f);if(el)el.value="";
+  });
+  var mom=document.getElementById(ctx+"-mom");if(mom)mom.checked=false;
+  var dad=document.getElementById(ctx+"-dad");if(dad)dad.checked=false;
+  var alone=document.getElementById(ctx+"-alone");if(alone)alone.checked=true;
+  var hm=document.getElementById(ctx+"-help-msg");if(hm)hm.value="";
+  var hd=document.getElementById(ctx+"-help-div");if(hd)hd.style.display="none";
+}
+function deleteTask(id){
+  if(confirm("Delete this task?")){
+    tasks=tasks.filter(function(t){return t.id!==id;});
+    save();renderAll();
+  }
+}
+function toggleDone(id){
+  var t=tasks.find(function(x){return x.id===id;});
+  if(!t)return;
+  t.completed=!t.completed;
+  if(t.completed)t.remainingTime=0;
+  else t.remainingTime=t.estimatedTime-(t.sessions||[]).reduce(function(s,se){return s+se.duration;},0);
+  save();renderAll();
+}
+function showWA(task,ctx){
+  var lines=[task.name,task.subject,task.estimatedTime+" min","Due: "+task.dueDate];
+  if(task.dueTime)lines.push("At: "+task.dueTime);
+  if(task.description)lines.push(task.description);
+  if(task.helpMessage)lines.push(task.helpMessage);
+  var msg=lines.join("\n");
+  var div=document.createElement("div");
+  div.className="wa-preview";
+  var box=document.createElement("div");
+  box.className="wa-message-box";
+  box.textContent=msg;
+  var btn=document.createElement("button");
+  btn.className="btn-whatsapp";
+  btn.textContent="Copy message";
+  btn.onclick=function(){copyWA(msg,btn);};
+  div.appendChild(box);div.appendChild(btn);
+  var list=document.getElementById(ctx==="d"?"d-tasks":"m-tasks");
+  if(list)list.insertBefore(div,list.firstChild);
+}
+function copyWA(text,btn){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){
+      btn.textContent="Copied!";
+      setTimeout(function(){btn.textContent="Copy message";},2500);
+    }).catch(function(){fallbackCopy(text,btn);});
+  }else{fallbackCopy(text,btn);}
+}
+function fallbackCopy(text,btn){
+  var ta=document.createElement("textarea");
+  ta.value=text;ta.style.cssText="position:fixed;opacity:0;";
+  document.body.appendChild(ta);ta.focus();ta.select();
+  try{document.execCommand("copy");btn.textContent="Copied!";setTimeout(function(){btn.textContent="Copy message";},2500);}
+  catch(e){alert(text);}
+  document.body.removeChild(ta);
+}
+function addFreeTime(ctx){
+  try{
+    var day=document.getElementById(ctx+"-free-day").value;
+    var time=document.getElementById(ctx+"-free-time").value;
+    var dur=parseInt(document.getElementById(ctx+"-free-dur").value)||0;
+    var typeEl=document.querySelector("input[name="+ctx+"-ftype]:checked");
+    var type=typeEl?typeEl.value:"recurring";
+    var odateEl=document.getElementById(ctx+"-onetime-date");
+    var odate=odateEl?odateEl.value:"";
+    if(!day||!time||!dur){alert("Please fill day, time and duration");return;}
+    if(type==="oneTime"&&!odate){alert("Please select a date");return;}
+    freeTimes.push({id:Date.now(),day:day,time:time,duration:dur,type:type,oneTimeDate:type==="oneTime"?odate:null});
+    save();renderFreeLists();renderCalendar();
+    document.getElementById(ctx+"-free-day").value="";
+    document.getElementById(ctx+"-free-time").value="";
+    document.getElementById(ctx+"-free-dur").value="";
+    if(odateEl)odateEl.value="";
+  }catch(e){alert(e.message);}
+}
+function deleteFT(id){
+  freeTimes=freeTimes.filter(function(f){return f.id!==id;});
+  save();renderFreeLists();renderCalendar();
+}
+function renderFreeLists(){
+  ["d","m"].forEach(function(ctx){
+    var el=document.getElementById(ctx+"-free-list");if(!el)return;
+    if(!freeTimes.length){el.innerHTML="";return;}
+    var html="<div style='margin-top:12px;font-weight:600;margin-bottom:6px'>Free times:</div>";
     freeTimes.forEach(function(ft){
-        if(parseInt(ft.time.split(':')[0])!==hour)return;
-        var match=ft.type==='recurring'&&parseInt(ft.day)===dayIdx;
-        if(!match&&ft.type==='oneTime')match=ft.oneTimeDate===cdStr;
-        if(match)evs.push({type:'free-time',text:'Free '+ft.duration+'min'});
+      html+="<div class='slot-item "+(ft.type==="recurring"?"recurring":"")+"'>";
+      html+="<div class='slot-info'><strong>"+DAYS[parseInt(ft.day)]+"</strong> ";
+      html+=ft.time+"-"+addMins(ft.time,ft.duration)+" ("+ft.duration+" min)</div>";
+      html+="<button class='btn-danger' onclick='deleteFT("+ft.id+")'>X</button></div>";
     });
-    tasks.forEach(function(t){
-        var ss=(t.sessions&&t.sessions.length)?t.sessions:(t.plannedDateTime?[{dateTime:t.plannedDateTime,duration:t.estimatedTime}]:[]);
-        ss.forEach(function(s){
-            if(!s.dateTime)return;
-            var p=new Date(s.dateTime);
-            if(p.getDate()===cd.getDate()&&p.getMonth()===cd.getMonth()&&p.getFullYear()===cd.getFullYear()&&p.getHours()===hour)
-                evs.push({type:'planned',text:t.name});
-        });
-        if(t.dueDate&&!t.completed){
-            var d=new Date(t.dueDate+'T'+(t.dueTime||'00:00'));
-            if(d.getDate()===cd.getDate()&&d.getMonth()===cd.getMonth()&&d.getFullYear()===cd.getFullYear()&&d.getHours()===hour)
-                evs.push({type:'deadline',text:t.name});
-        }
-    });
-    return evs;
+    el.innerHTML=html;
+  });
 }
-
+function addMins(t,m){
+  var p=t.split(":");
+  var tot=parseInt(p[0])*60+parseInt(p[1])+m;
+  return String(Math.floor(tot/60)%24).padStart(2,"0")+":"+String(tot%60).padStart(2,"0");
+}
+function getHours(){
+  var hrs=new Set();
+  freeTimes.forEach(function(ft){hrs.add(parseInt(ft.time.split(":")[0]));});
+  tasks.forEach(function(t){
+    (t.sessions||[]).forEach(function(s){if(s.dateTime)hrs.add(new Date(s.dateTime).getHours());});
+    if(t.plannedDateTime&&!(t.sessions&&t.sessions.length))hrs.add(new Date(t.plannedDateTime).getHours());
+    if(t.dueDate&&t.dueTime)hrs.add(new Date(t.dueDate+"T"+t.dueTime).getHours());
+  });
+  if(!hrs.size)for(var i=7;i<=21;i++)hrs.add(i);
+  var arr=Array.from(hrs);
+  arr.forEach(function(h){if(h>0)hrs.add(h-1);if(h<23)hrs.add(h+1);});
+  return Array.from(hrs).sort(function(a,b){return a-b;});
+}
+function getCellEvents(dayIdx,hour){
+  var cd=new Date(weekStart);
+  cd.setDate(cd.getDate()+dayIdx);cd.setHours(hour,0,0,0);
+  var evs=[];
+  var cdStr=cd.toISOString().split("T")[0];
+  freeTimes.forEach(function(ft){
+    if(parseInt(ft.time.split(":")[0])!==hour)return;
+    var match=ft.type==="recurring"&&parseInt(ft.day)===dayIdx;
+    if(!match&&ft.type==="oneTime")match=ft.oneTimeDate===cdStr;
+    if(match)evs.push({type:"free-time",text:"Free "+ft.duration+"min"});
+  });
+  tasks.forEach(function(t){
+    var ss=(t.sessions&&t.sessions.length)?t.sessions:(t.plannedDateTime?[{dateTime:t.plannedDateTime,duration:t.estimatedTime}]:[]);
+    ss.forEach(function(s){
+      if(!s.dateTime)return;
+      var p=new Date(s.dateTime);
+      if(p.getDate()===cd.getDate()&&p.getMonth()===cd.getMonth()&&p.getFullYear()===cd.getFullYear()&&p.getHours()===hour)
+        evs.push({type:"planned",text:t.name});
+    });
+    if(t.dueDate&&!t.completed){
+      var d=new Date(t.dueDate+"T"+(t.dueTime||"00:00"));
+      if(d.getDate()===cd.getDate()&&d.getMonth()===cd.getMonth()&&d.getFullYear()===cd.getFullYear()&&d.getHours()===hour)
+        evs.push({type:"deadline",text:"Due: "+t.name});
+    }
+  });
+  return evs;
+}
 function renderCalendar(){
-    var we=new Date(weekStart);we.setDate(we.getDate()+6);
-    var lbl=weekStart.toLocaleDateString('he-IL',{day:'numeric',month:'long'})+' - '+we.toLocaleDateString('he-IL',{day:'numeric',month:'long',year:'numeric'});
-    ['d-week-label','m-week-label'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=lbl;});
-    renderDesktopCal();renderMobileCal();
+  var we=new Date(weekStart);we.setDate(we.getDate()+6);
+  var lbl=weekStart.toLocaleDateString("he-IL",{day:"numeric",month:"long"})+" - "+we.toLocaleDateString("he-IL",{day:"numeric",month:"long",year:"numeric"});
+  ["d-week-label","m-week-label"].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=lbl;});
+  renderDesktopCal();renderMobileCal();
 }
-
 function renderDesktopCal(){
-    var table=document.getElementById('d-cal');if(!table)return;
-    var hours=getHours();
-    var html='<thead><tr><th class="time-col">Time</th>';
-    for(var i=0;i<7;i++){var d=new Date(weekStart);d.setDate(d.getDate()+i);html+='<th>'+DAYS[i]+'<br><small>'+d.getDate()+'/'+(d.getMonth()+1)+'</small></th>';}
-    html+='</tr></thead><tbody>';
-    hours.forEach(function(h){
-        html+='<tr><td class="time-cell">'+String(h).padStart(2,'0')+':00</td>';
-        for(var d=0;d<7;d++){
-            var evs=getCellEvents(d,h);
-            html+='<td class="day-cell'+(evs.length?' has-event':'')+'">'+evs.map(function(e){return '<div class="cal-event '+e.type+'">'+e.text+'</div>';}).join('')+'</td>';
-        }
-        html+='</tr>';
-    });
-    table.innerHTML=html+'</tbody>';
+  var table=document.getElementById("d-cal");if(!table)return;
+  var hours=getHours();
+  var html="<thead><tr><th class='time-col'>Time</th>";
+  for(var i=0;i<7;i++){var d=new Date(weekStart);d.setDate(d.getDate()+i);html+="<th>"+DAYS[i]+"<br><small>"+d.getDate()+"/"+(d.getMonth()+1)+"</small></th>";}
+  html+="</tr></thead><tbody>";
+  hours.forEach(function(h){
+    html+="<tr><td class='time-cell'>"+String(h).padStart(2,"0")+":00</td>";
+    for(var d=0;d<7;d++){
+      var evs=getCellEvents(d,h);
+      html+="<td class='day-cell"+(evs.length?" has-event":"")+"'>"+evs.map(function(e){return "<div class='cal-event "+e.type+"'>"+e.text+"</div>";}).join("")+"</td>";
+    }
+    html+="</tr>";
+  });
+  table.innerHTML=html+"</tbody>";
 }
-
 function renderMobileCal(){
-    var d=new Date(weekStart);d.setDate(d.getDate()+mobileDay);
-    var lbl=document.getElementById('m-day-label');
-    if(lbl)lbl.textContent=DAYS[mobileDay]+' '+d.getDate()+'/'+(d.getMonth()+1);
-    var body=document.getElementById('m-day-body');if(!body)return;
-    var hours=getHours();
-    body.innerHTML=hours.map(function(h){
-        var evs=getCellEvents(mobileDay,h);
-        return '<div class="hour-row"><div class="hour-label">'+String(h).padStart(2,'0')+':00</div><div class="hour-events">'+evs.map(function(e){return '<div class="cal-event '+e.type+'">'+e.text+'</div>';}).join('')+'</div></div>';
-    }).join('') || '<div class="empty-msg">No events</div>';
+  var d=new Date(weekStart);d.setDate(d.getDate()+mobileDay);
+  var lbl=document.getElementById("m-day-label");
+  if(lbl)lbl.textContent=DAYS[mobileDay]+" "+d.getDate()+"/"+(d.getMonth()+1);
+  var body=document.getElementById("m-day-body");if(!body)return;
+  var hours=getHours();
+  body.innerHTML=hours.map(function(h){
+    var evs=getCellEvents(mobileDay,h);
+    return "<div class='hour-row'><div class='hour-label'>"+String(h).padStart(2,"0")+":00</div><div class='hour-events'>"+evs.map(function(e){return "<div class='cal-event "+e.type+"'>"+e.text+"</div>";}).join("")+"</div></div>";
+  }).join("")||"<div class='empty-msg'>No events today</div>";
 }
-
 function changeWeek(dir){weekStart.setDate(weekStart.getDate()+dir*7);renderCalendar();}
 function changeMobileDay(dir){mobileDay=(mobileDay+dir+7)%7;renderMobileCal();}
-
 function buildCalUrl(title,desc,startDt,durationMins){
-    var sd=new Date(startDt);
-    var ed=new Date(sd.getTime()+durationMins*60000);
-    function fmt(dt){return dt.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';}
-    return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(title)+'&details='+encodeURIComponent(desc||'')+'&dates='+fmt(sd)+'/'+fmt(ed);
+  var sd=new Date(startDt);
+  var ed=new Date(sd.getTime()+durationMins*60000);
+  function fmt(dt){return dt.toISOString().replace(/[-:]/g,"").split(".")[0]+"Z";}
+  return "https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent(title)+"&details="+encodeURIComponent(desc||"")+"&dates="+fmt(sd)+"/"+fmt(ed);
 }
-
 function renderTasks(){
-    ['d','m'].forEach(function(ctx){
-        var el=document.getElementById(ctx+'-tasks');if(!el)return;
-        if(!tasks.length){el.innerHTML='<div class="empty-msg">No tasks yet</div>';return;}
-        var html='';
-        tasks.forEach(function(t){
-            var due=t.dueTime?t.dueDate+' '+t.dueTime:t.dueDate;
-            var remaining=t.remainingTime!==undefined?t.remainingTime:t.estimatedTime;
-            var isPartial=remaining>0&&remaining<t.estimatedTime&&!t.completed;
-            var allS=(t.sessions&&t.sessions.length)?t.sessions:(t.plannedDateTime?[{dateTime:t.plannedDateTime,duration:t.estimatedTime}]:[]);
-            var hasPlanned=allS.length>0;
-            var days=Math.ceil((new Date(t.dueDate)-new Date())/86400000);
-            var cardClass=t.completed?'done':isPartial?'partial':hasPlanned?'planned':'';
-            html+='<div class="task-card '+cardClass+'">';
-            html+='<div class="task-header"><div>';
-            html+='<span class="task-name'+(t.completed?' done-text':'')+'">'+t.name+'</span><br>';
-            html+='<span class="badge badge-subject">'+t.subject+'</span>';
-            if(hasPlanned&&!isPartial)html+='<span class="badge badge-planned">Planned</span>';
-            if(isPartial)html+='<span class="badge badge-partial">'+remaining+' min left</span>';
-            if(days<=1&&!t.completed)html+='<span class="badge badge-urgent">Urgent</span>';
-            html+='</div><button class="btn-danger" onclick="deleteTask('+t.id+')">X</button></div>';
-            html+='<div class="task-meta">'+t.estimatedTime+' min | '+due+'</div>';
-            if(t.description)html+='<div class="task-meta">'+t.description+'</div>';
-            if(t.helpNeeded)html+='<div class="task-help">Help needed'+(t.helpMessage?': '+t.helpMessage:'')+'</div>';
-            allS.forEach(function(s,i){
-                if(!s.dateTime)return;
-                var sd=new Date(s.dateTime);
-                html+='<div class="task-planned-info">Planned: '+sd.toLocaleDateString('he-IL')+'</div>';
-            });
-            if(isPartial)html+='<div class="task-partial-info">'+remaining+' min remaining</div>';
-            html+='<div class="task-actions">';
-            html+='<label class="task-done-check"><input type="checkbox"'+(t.completed?' checked':'')+' onchange="toggleDone('+t.id+')"> Done</label>';
-            if(!t.completed){
-                var planLabel=isPartial?'Add time':hasPlanned?'Change':'Plan';
-                html+='<button class="btn-success" onclick="openPlan('+t.id+')">'+planLabel+'</button>';
-            }
-            allS.forEach(function(s,i){
-                if(!s.dateTime)return;
-                var desc=(t.description||'')+(t.helpMessage?'\n'+t.helpMessage:'');
-                var title=t.name+' - '+t.subject;
-                var url=buildCalUrl(title,desc,s.dateTime,s.duration);
-                html+='<a href="'+url+'" target="_blank" class="btn-gcal">Cal</a>';
-            });
-            if(t.helpNeeded)html+='<button class="btn-whatsapp" onclick="showWAById('+t.id+',\''+ctx+'\')">WA</button>';
-            html+='</div></div>';
-        });
-        el.innerHTML=html;
+  ["d","m"].forEach(function(ctx){
+    var el=document.getElementById(ctx+"-tasks");if(!el)return;
+    if(!tasks.length){el.innerHTML="<div class='empty-msg'>No tasks yet</div>";return;}
+    var html="";
+    tasks.forEach(function(t){
+      var due=t.dueTime?t.dueDate+" "+t.dueTime:t.dueDate;
+      var remaining=t.remainingTime!==undefined?t.remainingTime:t.estimatedTime;
+      var isPartial=remaining>0&&remaining<t.estimatedTime&&!t.completed;
+      var allS=(t.sessions&&t.sessions.length)?t.sessions:(t.plannedDateTime?[{dateTime:t.plannedDateTime,duration:t.estimatedTime}]:[]);
+      var hasPlanned=allS.length>0;
+      var days=Math.ceil((new Date(t.dueDate)-new Date())/86400000);
+      var cardClass=t.completed?"done":isPartial?"partial":hasPlanned?"planned":"";
+      html+="<div class='task-card "+cardClass+"'>";
+      html+="<div class='task-header'><div>";
+      html+="<span class='task-name"+(t.completed?" done-text":"")+"'>"+t.name+"</span><br>";
+      html+="<span class='badge badge-subject'>"+t.subject+"</span>";
+      if(hasPlanned&&!isPartial)html+="<span class='badge badge-planned'>Planned</span>";
+      if(isPartial)html+="<span class='badge badge-partial'>"+remaining+" min left</span>";
+      if(days<=1&&!t.completed)html+="<span class='badge badge-urgent'>Urgent!</span>";
+      html+="</div><button class='btn-danger' onclick='deleteTask("+t.id+")'>X</button></div>";
+      html+="<div class='task-meta'>"+t.estimatedTime+" min | "+due+"</div>";
+      if(t.description)html+="<div class='task-meta'>"+t.description+"</div>";
+      if(t.helpNeeded)html+="<div class='task-help'>Help needed"+(t.helpMessage?": "+t.helpMessage:"")+"</div>";
+      allS.forEach(function(s,i){
+        if(!s.dateTime)return;
+        var sd=new Date(s.dateTime);
+        html+="<div class='task-planned-info'>Planned: "+sd.toLocaleDateString("he-IL")+" "+sd.toLocaleTimeString("he-IL",{hour:"2-digit",minute:"2-digit"})+"</div>";
+      });
+      if(isPartial)html+="<div class='task-partial-info'>"+remaining+" min remaining</div>";
+      html+="<div class='task-actions'>";
+      html+="<label class='task-done-check'><input type='checkbox'"+(t.completed?" checked":"")+" onchange='toggleDone("+t.id+")'> Done</label>";
+      if(!t.completed){
+        var planLabel=isPartial?"Add time":hasPlanned?"Change":"Plan";
+        html+="<button class='btn-success' onclick='openPlan("+t.id+")'>"+planLabel+"</button>";
+      }
+      allS.forEach(function(s,i){
+        if(!s.dateTime)return;
+        var desc=(t.description||"")+(t.helpMessage?"\n"+t.helpMessage:"");
+        var title=t.name+" - "+t.subject;
+        var url=buildCalUrl(title,desc,s.dateTime,s.duration);
+        html+="<a href='"+url+"' target='_blank' class='btn-gcal'>Calendar</a>";
+      });
+      if(t.helpNeeded)html+="<button class='btn-whatsapp' onclick='showWAById("+t.id+",\""+ctx+"\")'>WhatsApp</button>";
+      html+="</div></div>";
     });
-    updateStats();
+    el.innerHTML=html;
+  });
+  updateStats();
 }
-
 function showWAById(id,ctx){
-    var t=tasks.find(function(x){return x.id===id;});
-    if(t)showWA(t,ctx);
+  var t=tasks.find(function(x){return x.id===id;});
+  if(t)showWA(t,ctx);
 }
-
 function updateStats(){
-    var tot=tasks.length,pend=tasks.filter(function(t){return !t.completed;}).length;
-    var hrs=(tasks.filter(function(t){return !t.completed;}).reduce(function(s,t){return s+(t.remainingTime!==undefined?t.remainingTime:t.estimatedTime);},0)/60).toFixed(1);
-    ['d','m'].forEach(function(p){
-        var a=document.getElementById(p+'-total'),b=document.getElementById(p+'-pending'),c=document.getElementById(p+'-hours');
-        if(a)a.textContent=tot;if(b)b.textContent=pend;if(c)c.textContent=hrs;
-    });
+  var tot=tasks.length,pend=tasks.filter(function(t){return !t.completed;}).length;
+  var hrs=(tasks.filter(function(t){return !t.completed;}).reduce(function(s,t){return s+(t.remainingTime!==undefined?t.remainingTime:t.estimatedTime);},0)/60).toFixed(1);
+  ["d","m"].forEach(function(p){
+    var a=document.getElementById(p+"-total"),b=document.getElementById(p+"-pending"),c=document.getElementById(p+"-hours");
+    if(a)a.textContent=tot;if(b)b.textContent=pend;if(c)c.textContent=hrs;
+  });
 }
-
 function renderSchedule(){
-    ['d','m'].forEach(function(ctx){
-        var el=document.getElementById(ctx+'-schedule');if(!el)return;
-        var pending=tasks.filter(function(t){return !t.completed;}).sort(function(a,b){return new Date(a.dueDate)-new Date(b.dueDate);});
-        if(!pending.length){el.innerHTML='<p class="empty-msg">All done!</p>';return;}
-        var html='';
-        pending.forEach(function(t,i){
-            var days=Math.ceil((new Date(t.dueDate)-new Date())/86400000);
-            var urg=days<=1?'URGENT':days<=3?'Soon':'OK';
-            var remaining=t.remainingTime!==undefined?t.remainingTime:t.estimatedTime;
-            html+='<div class="schedule-card"><div class="schedule-card-title">'+(i+1)+'. '+t.name+' '+urg+'</div>';
-            html+='<div class="schedule-card-meta">'+t.subject+' | '+remaining+' min | '+t.dueDate+'</div></div>';
-        });
-        el.innerHTML=html;
+  ["d","m"].forEach(function(ctx){
+    var el=document.getElementById(ctx+"-schedule");if(!el)return;
+    var pending=tasks.filter(function(t){return !t.completed;}).sort(function(a,b){return new Date(a.dueDate)-new Date(b.dueDate);});
+    if(!pending.length){el.innerHTML="<p class='empty-msg'>All done!</p>";return;}
+    var html="";
+    pending.forEach(function(t,i){
+      var days=Math.ceil((new Date(t.dueDate)-new Date())/86400000);
+      var urg=days<=1?"URGENT":days<=3?"Soon":"OK";
+      var remaining=t.remainingTime!==undefined?t.remainingTime:t.estimatedTime;
+      var allS=(t.sessions&&t.sessions.length)?t.sessions:(t.plannedDateTime?[{dateTime:t.plannedDateTime,duration:t.estimatedTime}]:[]);
+      html+="<div class='schedule-card'><div class='schedule-card-title'>"+(i+1)+". "+t.name+" "+urg+"</div>";
+      html+="<div class='schedule-card-meta'>"+t.subject+" | "+remaining+" min | "+t.dueDate;
+      allS.forEach(function(s){if(!s.dateTime)return;var p=new Date(s.dateTime);html+=" | Planned: "+p.toLocaleDateString("he-IL");});
+      html+="</div></div>";
     });
+    el.innerHTML=html;
+  });
 }
-
 function openPlan(id){
-    planTaskId=id;selSlot=null;
-    var task=tasks.find(function(t){return t.id===id;});if(!task)return;
-    var remaining=task.remainingTime!==undefined?task.remainingTime:task.estimatedTime;
-    document.getElementById('plan-task-info').innerHTML='<div style="padding:12px;background:#f0f4ff;border-radius:8px;margin-bottom:14px"><strong>'+task.name+'</strong><br><small>'+task.subject+' | '+remaining+' min remaining</small></div><div style="font-weight:600;margin-bottom:10px">Select free slot:</div>';
-    var slots=findSlots(task);
-    var sd=document.getElementById('plan-slots');
-    if(!slots.length){sd.innerHTML='<p style="color:#f44336;text-align:center">No free slots. Add free times first!</p>';return;}
-    var shtml='';
-    slots.forEach(function(s,i){
-        var d=new Date(s.dt),isShort=s.dur<remaining;
-        shtml+='<div class="slot-option'+(isShort?' short':'')+'" onclick="selSlotFn('+i+',\''+s.dt+'\','+s.dur+','+(isShort?'true':'false')+')">';
-        shtml+='<strong>'+d.toLocaleDateString('he-IL',{weekday:'long',day:'numeric',month:'numeric'})+'</strong>';
-        if(isShort)shtml+=' <small style="color:#e65100">(partial)</small>';
-        shtml+='<br><span style="color:#667eea">'+d.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})+' - '+s.end+'</span>';
-        shtml+=' <span style="background:'+(isShort?'#fff3e0':'#e8f5e9')+';padding:2px 8px;border-radius:5px;font-size:12px">'+s.dur+' min free</span>';
-        shtml+='</div>';
-    });
-    sd.innerHTML=shtml;
-    document.getElementById('plan-modal').style.display='block';
+  planTaskId=id;selSlot=null;
+  var task=tasks.find(function(t){return t.id===id;});if(!task)return;
+  var remaining=task.remainingTime!==undefined?task.remainingTime:task.estimatedTime;
+  document.getElementById("plan-task-info").innerHTML="<div style='padding:12px;background:#f0f4ff;border-radius:8px;margin-bottom:14px'><strong>"+task.name+"</strong><br><small>"+task.subject+" | "+remaining+" min remaining | Due: "+task.dueDate+"</small></div><div style='font-weight:600;margin-bottom:10px'>Select free slot:</div>";
+  var slots=findSlots(task);
+  var sd=document.getElementById("plan-slots");
+  if(!slots.length){sd.innerHTML="<p style='color:#f44336;text-align:center;padding:15px'>No free slots. Add free times first!</p>";return;}
+  var shtml="";
+  slots.forEach(function(s,i){
+    var d=new Date(s.dt),isShort=s.dur<remaining;
+    shtml+="<div class='slot-option"+(isShort?" short":"")+"' onclick='selSlotFn("+i+",\""+s.dt+"\","+s.dur+","+(isShort?"true":"false")+")'>";
+    shtml+="<strong>"+d.toLocaleDateString("he-IL",{weekday:"long",day:"numeric",month:"numeric"})+"</strong>";
+    if(isShort)shtml+=" <small style='color:#e65100'>(partial)</small>";
+    shtml+="<br><span style='color:#667eea'>"+d.toLocaleTimeString("he-IL",{hour:"2-digit",minute:"2-digit"})+" - "+s.end+"</span>";
+    shtml+=" <span style='background:"+(isShort?"#fff3e0":"#e8f5e9")+";padding:2px 8px;border-radius:5px;font-size:12px'>"+s.dur+" min free</span>";
+    shtml+="</div>";
+  });
+  sd.innerHTML=shtml;
+  document.getElementById("plan-modal").style.display="block";
 }
-
 function selSlotFn(i,dt,dur,isShort){
-    selSlot={dt:dt,dur:dur,isShort:isShort};
-    document.querySelectorAll('.slot-option').forEach(function(el,idx){el.classList.toggle('selected',idx===i);});
+  selSlot={dt:dt,dur:dur,isShort:isShort};
+  document.querySelectorAll(".slot-option").forEach(function(el,idx){el.classList.toggle("selected",idx===i);});
 }
-
-function closePlan(){document.getElementById('plan-modal').style.display='none';selSlot=null;planTaskId=null;}
-
+function closePlan(){document.getElementById("plan-modal").style.display="none";selSlot=null;planTaskId=null;}
 function confirmPlan(){
-    if(!selSlot||!planTaskId){alert('Select a slot');return;}
-    var task=tasks.find(function(t){return t.id===planTaskId;});if(!task)return;
-    var remaining=task.remainingTime!==undefined?task.remainingTime:task.estimatedTime;
-    if(selSlot.isShort){closePlan();openPartialModal(task,selSlot.dt,selSlot.dur,remaining);}
-    else{
-        if(!task.sessions)task.sessions=[];
-        task.sessions.push({dateTime:selSlot.dt,duration:remaining});
-        task.plannedDateTime=selSlot.dt;task.remainingTime=0;
-        save();renderAll();closePlan();
-    }
-}
-
-function openPartialModal(task,dt,availDur,remaining){
-    partialTaskId=task.id;partialSlot={dt:dt,availDur:availDur};
-    document.getElementById('partial-info').innerHTML='<div style="padding:12px;background:#fff8f0;border-radius:8px;margin-bottom:10px;border:2px solid #ff9800"><strong>'+task.name+'</strong><br><small>Available: '+availDur+' min | Needed: '+remaining+' min</small></div>';
-    var input=document.getElementById('partial-minutes');
-    input.value=availDur;input.max=availDur;
-    document.getElementById('partial-hint').textContent='Max '+availDur+' min. Rest will be scheduled separately.';
-    document.getElementById('partial-modal').style.display='block';
-}
-
-function closePartial(){document.getElementById('partial-modal').style.display='none';partialTaskId=null;partialSlot=null;}
-
-function confirmPartial(){
-    var mins=parseInt(document.getElementById('partial-minutes').value)||0;
-    var task=tasks.find(function(t){return t.id===partialTaskId;});if(!task){closePartial();return;}
-    if(mins<=0||mins>partialSlot.availDur){alert('Invalid minutes');return;}
-    var remaining=task.remainingTime!==undefined?task.remainingTime:task.estimatedTime;
+  if(!selSlot||!planTaskId){alert("Please select a slot");return;}
+  var task=tasks.find(function(t){return t.id===planTaskId;});if(!task)return;
+  var remaining=task.remainingTime!==undefined?task.remainingTime:task.estimatedTime;
+  if(selSlot.isShort){closePlan();openPartialModal(task,selSlot.dt,selSlot.dur,remaining);}
+  else{
     if(!task.sessions)task.sessions=[];
-    task.sessions.push({dateTime:partialSlot.dt,duration:mins});
-    task.plannedDateTime=partialSlot.dt;
-    task.remainingTime=Math.max(0,remaining-mins);
-    save();renderAll();closePartial();
-    if(task.remainingTime>0)alert('Planned '+mins+' min. '+task.remainingTime+' min remaining.');
+    task.sessions.push({dateTime:selSlot.dt,duration:remaining});
+    task.plannedDateTime=selSlot.dt;task.remainingTime=0;
+    save();renderAll();closePlan();
+  }
 }
-
+function openPartialModal(task,dt,availDur,remaining){
+  partialTaskId=task.id;partialSlot={dt:dt,availDur:availDur};
+  document.getElementById("partial-info").innerHTML="<div style='padding:12px;background:#fff8f0;border-radius:8px;margin-bottom:10px;border:2px solid #ff9800'><strong>"+task.name+"</strong><br><small>Available: "+availDur+" min | Needed: "+remaining+" min</small></div>";
+  var input=document.getElementById("partial-minutes");
+  input.value=availDur;input.max=availDur;
+  document.getElementById("partial-hint").textContent="Max "+availDur+" min. Rest will be scheduled separately.";
+  document.getElementById("partial-modal").style.display="block";
+}
+function closePartial(){document.getElementById("partial-modal").style.display="none";partialTaskId=null;partialSlot=null;}
+function confirmPartial(){
+  var mins=parseInt(document.getElementById("partial-minutes").value)||0;
+  var task=tasks.find(function(t){return t.id===partialTaskId;});if(!task){closePartial();return;}
+  if(mins<=0||mins>partialSlot.availDur){alert("Invalid number of minutes");return;}
+  var remaining=task.remainingTime!==undefined?task.remainingTime:task.estimatedTime;
+  if(!task.sessions)task.sessions=[];
+  task.sessions.push({dateTime:partialSlot.dt,duration:mins});
+  task.plannedDateTime=partialSlot.dt;
+  task.remainingTime=Math.max(0,remaining-mins);
+  save();renderAll();closePartial();
+  if(task.remainingTime>0)alert("Planned "+mins+" min. "+task.remainingTime+" min still remaining.");
+}
 function findSlots(task){
-    var slots=[],remaining=task.remainingTime!==undefined?task.remainingTime:task.estimatedTime;
-    var due=new Date(task.dueDate+'T'+(task.dueTime||'23:59'));
-    for(var off=0;off<14;off++){
-        var day=new Date();day.setDate(day.getDate()+off);day.setHours(0,0,0,0);
-        if(day>due)break;
-        var dow=day.getDay();
-        freeTimes.forEach(function(ft){
-            var match=ft.type==='recurring'&&parseInt(ft.day)===dow;
-            if(!match&&ft.type==='oneTime')match=ft.oneTimeDate===day.toISOString().split('T')[0];
-            if(!match)return;
-            var parts=ft.time.split(':');
-            var start=new Date(day);start.setHours(parseInt(parts[0]),parseInt(parts[1]),0,0);
-            var occ=tasks.some(function(t){
-                if(t.id===task.id)return false;
-                var allS=(t.sessions&&t.sessions.length)?t.sessions:(t.plannedDateTime?[{dateTime:t.plannedDateTime,duration:t.estimatedTime}]:[]);
-                return allS.some(function(s){
-                    if(!s.dateTime)return false;
-                    var ps=new Date(s.dateTime),pe=new Date(ps.getTime()+s.duration*60000);
-                    var se=new Date(start.getTime()+Math.min(ft.duration,remaining)*60000);
-                    return start<pe&&se>ps;
-                });
-            });
-            if(!occ){
-                var end=new Date(start.getTime()+Math.min(ft.duration,remaining)*60000);
-                slots.push({dt:start.toISOString().slice(0,16),end:end.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}),dur:ft.duration});
-            }
+  var slots=[],remaining=task.remainingTime!==undefined?task.remainingTime:task.estimatedTime;
+  var due=new Date(task.dueDate+"T"+(task.dueTime||"23:59"));
+  for(var off=0;off<14;off++){
+    var day=new Date();day.setDate(day.getDate()+off);day.setHours(0,0,0,0);
+    if(day>due)break;
+    var dow=day.getDay();
+    freeTimes.forEach(function(ft){
+      var match=ft.type==="recurring"&&parseInt(ft.day)===dow;
+      if(!match&&ft.type==="oneTime")match=ft.oneTimeDate===day.toISOString().split("T")[0];
+      if(!match)return;
+      var parts=ft.time.split(":");
+      var start=new Date(day);start.setHours(parseInt(parts[0]),parseInt(parts[1]),0,0);
+      var occ=tasks.some(function(t){
+        if(t.id===task.id)return false;
+        var allS=(t.sessions&&t.sessions.length)?t.sessions:(t.plannedDateTime?[{dateTime:t.plannedDateTime,duration:t.estimatedTime}]:[]);
+        return allS.some(function(s){
+          if(!s.dateTime)return false;
+          var ps=new Date(s.dateTime),pe=new Date(ps.getTime()+s.duration*60000);
+          var se=new Date(start.getTime()+Math.min(ft.duration,remaining)*60000);
+          return start<pe&&se>ps;
         });
-    }
-    return slots.sort(function(a,b){return new Date(a.dt)-new Date(b.dt);}).slice(0,12);
+      });
+      if(!occ){
+        var end=new Date(start.getTime()+Math.min(ft.duration,remaining)*60000);
+        slots.push({dt:start.toISOString().slice(0,16),end:end.toLocaleTimeString("he-IL",{hour:"2-digit",minute:"2-digit"}),dur:ft.duration});
+      }
+    });
+  }
+  return slots.sort(function(a,b){return new Date(a.dt)-new Date(b.dt);}).slice(0,12);
 }
-
 function exportAllCal(){
-    var planned=tasks.filter(function(t){return(t.sessions&&t.sessions.length>0)||t.plannedDateTime;});
-    if(!planned.length){alert('No planned tasks');return;}
-    var count=0;
-    planned.forEach(function(t){
-        var allS=(t.sessions&&t.sessions.length>0)?t.sessions:[{dateTime:t.plannedDateTime,duration:t.estimatedTime}];
-        allS.forEach(function(s,i){
-            if(!s.dateTime)return;
-            setTimeout(function(){
-                var title=t.name+' - '+t.subject;
-                var desc=(t.description||'')+(t.helpMessage?'\n'+t.helpMessage:'');
-                window.open(buildCalUrl(title,desc,s.dateTime,s.duration),'_blank');
-            },count*700);
-            count++;
-        });
+  var planned=tasks.filter(function(t){return(t.sessions&&t.sessions.length>0)||t.plannedDateTime;});
+  if(!planned.length){alert("No planned tasks to export");return;}
+  var count=0;
+  planned.forEach(function(t){
+    var allS=(t.sessions&&t.sessions.length>0)?t.sessions:[{dateTime:t.plannedDateTime,duration:t.estimatedTime}];
+    allS.forEach(function(s,i){
+      if(!s.dateTime)return;
+      setTimeout(function(){
+        var title=t.name+" - "+t.subject;
+        var desc=(t.description||"")+(t.helpMessage?"\n"+t.helpMessage:"");
+        window.open(buildCalUrl(title,desc,s.dateTime,s.duration),"_blank");
+      },count*700);
+      count++;
     });
+  });
 }
-
 function renderAll(){renderTasks();renderFreeLists();renderCalendar();renderSchedule();}
-
 window.onclick=function(e){
-    if(e.target===document.getElementById('plan-modal'))closePlan();
-    if(e.target===document.getElementById('partial-modal'))closePartial();
+  if(e.target===document.getElementById("plan-modal"))closePlan();
+  if(e.target===document.getElementById("partial-modal"))closePartial();
 };
-
-document.addEventListener('DOMContentLoaded',function(){
-    load();renderAll();
-    ['d','m'].forEach(function(ctx){
-        ['mom','dad','alone'].forEach(function(id){
-            var el=document.getElementById(ctx+'-'+id);if(!el)return;
-            el.addEventListener('change',function(){
-                var needs=document.getElementById(ctx+'-mom').checked||document.getElementById(ctx+'-dad').checked;
-                document.getElementById(ctx+'-alone').checked=!needs;
-                document.getElementById(ctx+'-help-div').style.display=needs?'block':'none';
-            });
-        });
-        document.querySelectorAll('input[name="'+ctx+'-ftype"]').forEach(function(r){
-            r.addEventListener('change',function(){
-                var div=document.getElementById(ctx+'-onetime-div');
-                if(div)div.style.display=this.value==='oneTime'?'block':'none';
-            });
-        });
+document.addEventListener("DOMContentLoaded",function(){
+  load();renderAll();
+  ["d","m"].forEach(function(ctx){
+    ["mom","dad","alone"].forEach(function(id){
+      var el=document.getElementById(ctx+"-"+id);if(!el)return;
+      el.addEventListener("change",function(){
+        var needs=document.getElementById(ctx+"-mom").checked||document.getElementById(ctx+"-dad").checked;
+        document.getElementById(ctx+"-alone").checked=!needs;
+        document.getElementById(ctx+"-help-div").style.display=needs?"block":"none";
+      });
     });
-    var pi=document.getElementById('partial-minutes');
-    if(pi)pi.addEventListener('input',function(){
-        if(!partialSlot)return;
-        var t=tasks.find(function(t){return t.id===partialTaskId;});
-        var rem=t?t.remainingTime||t.estimatedTime:0;
-        document.getElementById('partial-hint').textContent=this.value+' min now | '+(rem-parseInt(this.value||0))+' min remaining';
+    document.querySelectorAll("input[name="+ctx+"-ftype]").forEach(function(r){
+      r.addEventListener("change",function(){
+        var div=document.getElementById(ctx+"-onetime-div");
+        if(div)div.style.display=this.value==="oneTime"?"block":"none";
+      });
     });
+  });
+  var pi=document.getElementById("partial-minutes");
+  if(pi)pi.addEventListener("input",function(){
+    if(!partialSlot)return;
+    var t=tasks.find(function(t){return t.id===partialTaskId;});
+    var rem=t?t.remainingTime||t.estimatedTime:0;
+    document.getElementById("partial-hint").textContent=this.value+" min now | "+(rem-parseInt(this.value||0))+" min remaining";
+  });
 });
 </script>
 </body>
